@@ -188,6 +188,8 @@ table.tab{width:100%;border-collapse:collapse;font-size:13px;background:var(--pa
 .formularz .siatka-pol{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 14px}
 .siatka-pol{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:0 16px}
 .dni-check{display:flex;flex-wrap:wrap;gap:8px}
+.upr{display:flex;flex-direction:column;gap:3px;font-size:12px}
+.upr label{display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer}
 .dni-check label{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;padding:8px 12px;cursor:pointer}
 .chipy{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;padding:4px 4px 4px 10px;font-size:13px}
@@ -239,7 +241,7 @@ const KONFIG = {
   prefiks: 'awizacja+',
   supabaseJs: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0'
 };
-const WERSJA = 'v1.2';
+const WERSJA = 'v1.3';
 
 /* ---------- drobiazgi ---------- */
 const $ = (s, el = document) => el.querySelector(s);
@@ -347,7 +349,8 @@ function demoDane() {
     { id: 3, kolor: PALETA[2], nazwa: 'Auto-Kurier Test', nip: '000-000-00-03', telefon: '600 300 400', email: 'kontakt@kurier-test.example', uwagi: null, aktywna: true, utworzono: teraz }
   ];
   const konta = [
-    { id: 'u-biuro', login: 'biuro', imie: 'Biuro logistyki', rola: 'logistyka', firma_id: null, aktywny: true, haslo: '123456', utworzono: teraz },
+    { id: 'u-biuro', login: 'biuro', imie: 'Biuro logistyki', rola: 'logistyka', firma_id: null, aktywny: true, admin: true, uprawnienia: [], haslo: '123456', utworzono: teraz },
+    { id: 'u-mag', login: 'magazyn', imie: 'Magazyn', rola: 'logistyka', firma_id: null, aktywny: true, admin: false, uprawnienia: [], haslo: '123456', utworzono: teraz },
     { id: 'u-trans', login: 'transdemo', imie: 'Dyspozytor TransDemo', rola: 'przewoznik', firma_id: 1, aktywny: true, haslo: 'demo1234', utworzono: teraz },
     { id: 'u-prob', login: 'probna', imie: 'Spedycja Próbna', rola: 'przewoznik', firma_id: 2, aktywny: true, haslo: 'demo1234', utworzono: teraz }
   ];
@@ -388,6 +391,11 @@ function DemoDB() {
   function czytaj() {
     let d = null; try { d = JSON.parse(localStorage.getItem(K) || 'null'); } catch (e) {}
     if (!d || d.wersja !== 1) { d = demoDane(); pisz(d); }
+    if (!d.konta.some(k => 'admin' in k)) {
+      d.konta.forEach(k => { k.admin = k.login === 'biuro'; k.uprawnienia = k.uprawnienia || []; });
+      if (!d.konta.some(k => k.login === 'magazyn')) d.konta.push({ id: 'u-mag', login: 'magazyn', imie: 'Magazyn', rola: 'logistyka', firma_id: null, aktywny: true, admin: false, uprawnienia: [], haslo: '123456', utworzono: new Date().toISOString() });
+      pisz(d);
+    }
     if (d.firmy.some(f => !f.kolor)) { [...d.firmy].sort((a, b) => a.id - b.id).forEach(f => { if (!f.kolor) f.kolor = wolnyKolor(d.firmy, f.id); }); pisz(d); }
     return d;
   }
@@ -404,6 +412,10 @@ function DemoDB() {
     return { d, p, rola };
   }
   const tylkoLog = rola => { if (rola !== 'logistyka') throw blad('Brak uprawnień do tej operacji.'); };
+  const wymagaj = (p, upr) => {
+    const ok = p.rola === 'logistyka' && (p.admin || (upr !== 'admin' && (p.uprawnienia || []).includes(upr)));
+    if (!ok) throw blad(upr === 'admin' ? 'Tylko administrator może zarządzać kontami.' : 'Nie masz uprawnienia do tej operacji – poproś administratora.');
+  };
   const bezHasla = p => { const { haslo, ...r } = p; return r; };
   const nachodzi = (a, b) => new Date(a.poczatek) < new Date(b.koniec) && new Date(b.poczatek) < new Date(a.koniec);
   function sprawdzZapis(d, rola, p, nowy, stary) {
@@ -479,33 +491,34 @@ function DemoDB() {
     async odwolaj(id, powod) { return db.zmien(id, { status: 'odwolana', powod_odwolania: powod || null }); },
     async konta() { const { d, rola } = kto(); tylkoLog(rola); return d.konta.map(bezHasla).sort((a, b) => a.login.localeCompare(b.login, 'pl')); },
     async dodajKonto(k) {
-      const { d, rola } = kto(); tylkoLog(rola);
+      const { d, p } = kto(); wymagaj(p, 'admin');
       const l = k.login.trim().toLowerCase();
       if (d.konta.some(x => x.login === l)) throw blad('Taki login już istnieje.');
       if ((k.haslo || '').length < 6) throw blad('Hasło musi mieć co najmniej 6 znaków.');
-      d.konta.push({ id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), login: l, imie: k.imie || null, rola: k.rola, firma_id: k.rola === 'przewoznik' ? +k.firma_id : null, aktywny: true, haslo: k.haslo, utworzono: new Date().toISOString() });
+      d.konta.push({ id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), login: l, imie: k.imie || null, rola: k.rola, firma_id: k.rola === 'przewoznik' ? +k.firma_id : null, aktywny: true, admin: k.rola === 'logistyka' && (k.uprawnienia || []).includes('admin'), uprawnienia: k.rola === 'logistyka' ? (k.uprawnienia || []).filter(x => x !== 'admin') : [], haslo: k.haslo, utworzono: new Date().toISOString() });
       pisz(d);
     },
     async zmienKonto(id, z) {
-      const { d, rola } = kto(); tylkoLog(rola);
+      const { d, p: ja } = kto(); wymagaj(ja, 'admin');
       const k = d.konta.find(x => x.id === id); if (!k) throw blad('Nie ma takiego konta.');
-      ['aktywny', 'imie', 'firma_id'].forEach(p => { if (p in z) k[p] = z[p]; }); pisz(d);
+      if ((z.admin === false || z.aktywny === false) && k.admin && !d.konta.some(x => x.id !== k.id && x.admin && x.aktywny)) throw blad('Musi zostać co najmniej jeden aktywny administrator.');
+      ['aktywny', 'imie', 'firma_id', 'admin', 'uprawnienia'].forEach(p => { if (p in z) k[p] = z[p]; }); pisz(d);
     },
     async ustawHaslo(login, h) {
-      const { d, rola } = kto(); tylkoLog(rola);
+      const { d, p } = kto(); wymagaj(p, 'admin');
       if ((h || '').length < 6) throw blad('Hasło musi mieć co najmniej 6 znaków.');
       const k = d.konta.find(x => x.login === login); if (!k) throw blad('Nie ma konta ' + login + '.');
       k.haslo = h; pisz(d);
     },
     async zapiszFirme(f) {
-      const { d, rola } = kto(); tylkoLog(rola);
+      const { d, p } = kto(); wymagaj(p, 'firmy');
       if (f.id) { const x = d.firmy.find(y => y.id === f.id); Object.assign(x, f); }
       else d.firmy.push({ ...f, kolor: f.kolor || wolnyKolor(d.firmy), id: ++d.seqF, utworzono: new Date().toISOString() });
       pisz(d);
     },
-    async zapiszUstawienia(u) { const { d, rola } = kto(); tylkoLog(rola); d.ust = { ...d.ust, ...u, id: 1 }; pisz(d); },
+    async zapiszUstawienia(u) { const { d, p } = kto(); wymagaj(p, 'ustawienia'); d.ust = { ...d.ust, ...u, id: 1 }; pisz(d); },
     async zapiszRampe(r) {
-      const { d, rola } = kto(); tylkoLog(rola);
+      const { d, p } = kto(); wymagaj(p, 'ustawienia');
       if (d.rampy.some(x => x.kod === r.kod && x.id !== r.id)) throw blad('Rampa o kodzie ' + r.kod + ' już istnieje.');
       if (r.id) Object.assign(d.rampy.find(x => x.id === r.id), r); else d.rampy.push({ ...r, id: ++d.seqR });
       pisz(d);
@@ -536,6 +549,7 @@ function bladSb(e) {
   let x;
   if (e.code === '23P01') { x = new Error('To okno jest już zajęte – ktoś właśnie je zarezerwował. Widok został odświeżony.'); x.code = '23P01'; return x; }
   if (e.code === '42501' || /row-level security|permission denied/i.test(m)) return new Error('Brak uprawnień do tej operacji.');
+  if (/uprawnienia|\badmin\b/i.test(m) && /column|does not exist|schema cache/i.test(m)) return new Error('W bazie brakuje uprawnień – uruchom w Supabase plik awizacja-v1.3-uprawnienia.sql (SQL Editor).');
   if (/kolor/i.test(m) && /column|does not exist|schema cache/i.test(m)) return new Error('W bazie brakuje kolorów firm – uruchom w Supabase plik awizacja-v1.2-kolory.sql (SQL Editor).');
   if (e.code === '42P01' || e.code === 'PGRST205' || /does not exist|schema cache/i.test(m)) return new Error('Baza nie jest przygotowana – uruchom plik awizacja-baza.sql w Supabase (SQL Editor).');
   if (e.code === '23505') return new Error('Taki wpis już istnieje (powtórzony login, kod albo adres).');
@@ -597,7 +611,7 @@ async function utworzSupaDB(url, klucz) {
     async konta() { return dane(await sb.from('profile').select('*').order('login')); },
     async dodajKonto(k) {
       const login = k.login.trim().toLowerCase(), email = loginNaEmail(login);
-      dane(await sb.from('konta_oczekujace').upsert({ email, login, imie: k.imie || null, rola: k.rola, firma_id: k.rola === 'przewoznik' ? +k.firma_id : null, wygasa: new Date(Date.now() + 864e5).toISOString() }));
+      dane(await sb.from('konta_oczekujace').upsert({ email, login, imie: k.imie || null, rola: k.rola, firma_id: k.rola === 'przewoznik' ? +k.firma_id : null, admin: k.rola === 'logistyka' && (k.uprawnienia || []).includes('admin'), uprawnienia: k.rola === 'logistyka' ? (k.uprawnienia || []).filter(x => x !== 'admin') : [], wygasa: new Date(Date.now() + 864e5).toISOString() }));
       const tmp = window.supabase.createClient(url, klucz, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'awizacja.tymczasowe' } });
       const r = await tmp.auth.signUp({ email, password: k.haslo });
       if (r.error) { await sb.from('konta_oczekujace').delete().eq('email', email); throw bladAuth(r.error, email); }
@@ -692,7 +706,8 @@ function pokazLogowanie(msg) {
           ${demo ? `
             <p><b>Tryb demo</b> – dane zapisują się tylko w tej przeglądarce. Kliknij konto, żeby je wpisać:</p>
             <table class="demo-konta">
-              <tr><td><button type="button" data-l="biuro" data-h="123456">biuro</button></td><td>PIN 123456</td><td>logistyka</td></tr>
+              <tr><td><button type="button" data-l="biuro" data-h="123456">biuro</button></td><td>PIN 123456</td><td>administrator</td></tr>
+              <tr><td><button type="button" data-l="magazyn" data-h="123456">magazyn</button></td><td>PIN 123456</td><td>biuro bez uprawnień</td></tr>
               <tr><td><button type="button" data-l="transdemo" data-h="demo1234">transdemo</button></td><td>demo1234</td><td>przewoźnik</td></tr>
               <tr><td><button type="button" data-l="probna" data-h="demo1234">probna</button></td><td>demo1234</td><td>przewoźnik</td></tr>
             </table>
@@ -704,16 +719,8 @@ function pokazLogowanie(msg) {
               <button type="button" class="btn" id="bZapiszPolacz">Połącz</button>
               <p class="drobne">Nigdy nie wpisuj tu klucza „service_role” ani „secret”.</p>
             </div>` : `
-            <p>Baza: <b>${esc(S.db.host)}</b></p>
-            <div class="linki"><button type="button" class="lnk" id="bAdmin">Pierwsze uruchomienie – ustaw hasło administratora</button>
-            ${cfg.zPliku ? '' : '<button type="button" class="lnk" id="bRozlacz">Odłącz bazę (wróć do demo)</button>'}</div>
-            <div id="panelAdmin" hidden>
-              <p class="drobne" style="margin-top:0">Konto <b>admin</b> (logistyka) przygotował plik SQL. Ustaw mu hasło – potem zaloguj się loginem <b>admin</b>.</p>
-              <label class="pole"><span>Hasło (min. 8 znaków)</span><input id="aH1" type="password" autocomplete="new-password"></label>
-              <label class="pole"><span>Powtórz hasło</span><input id="aH2" type="password" autocomplete="new-password"></label>
-              <div id="aBlad"></div>
-              <button type="button" class="btn" id="bUtworzAdmina">Utwórz konto admin</button>
-            </div>`}
+            <p class="drobne">Konta zakłada administrator. Nie pamiętasz hasła? Poproś administratora o nowe.</p>
+            ${cfg.zPliku ? '' : '<div class="linki"><button type="button" class="lnk" id="bRozlacz">Odłącz bazę (wróć do demo)</button></div>'}`}
         </div>
       </form>
     </section>
@@ -739,15 +746,7 @@ function pokazLogowanie(msg) {
       location.reload();
     };
   } else {
-    $('#bAdmin').onclick = () => { $('#panelAdmin').hidden = !$('#panelAdmin').hidden; };
     const r = $('#bRozlacz'); if (r) r.onclick = () => { try { localStorage.removeItem('awizacja.konfig'); } catch (e) {} location.reload(); };
-    $('#bUtworzAdmina').onclick = async () => {
-      const h1 = $('#aH1').value, h2 = $('#aH2').value;
-      const zle = t => { $('#aBlad').innerHTML = `<div class="komunikat">${esc(t)}</div>`; };
-      if (h1.length < 8) return zle('Hasło administratora musi mieć co najmniej 8 znaków.');
-      if (h1 !== h2) return zle('Hasła się różnią.');
-      try { const ja = await S.db.utworzAdmina(h1); await wejdz(ja); } catch (e) { zle(e.message); }
-    };
   }
   (f.login.value ? f.haslo : f.login).focus();
 }
@@ -800,6 +799,9 @@ function kolorFirmy(id) {
   return PALETA[(i < 0 ? 0 : i) % PALETA.length];
 }
 const loginKonta = uid => { const k = S.konta.find(k => k.id === uid); return k ? k.login : ''; };
+const jestAdmin = () => !!(S.ja && S.ja.rola === 'logistyka' && S.ja.admin);
+const mam = p => !!(S.ja && S.ja.rola === 'logistyka' && (S.ja.admin || (S.ja.uprawnienia || []).includes(p)));
+const UPRAWNIENIA = [['firmy', 'firmy przewoźników'], ['ustawienia', 'ustawienia i rampy']];
 const rampa = id => S.rampy.find(r => r.id === id) || { kod: '?', nazwa: '?' };
 
 let odswTimer = null;
@@ -838,9 +840,10 @@ function ustawStan(s) {
 
 /* ---------- powłoka ---------- */
 function zakladki() {
-  return S.ja.rola === 'logistyka'
-    ? [['kafelki', 'Kafelki'], ['lista', 'Lista tygodnia'], ['firmy', 'Firmy i konta'], ['ustawienia', 'Ustawienia']]
-    : [['kafelki', 'Kafelki'], ['moje', 'Moje awizacje']];
+  if (S.ja.rola !== 'logistyka') return [['kafelki', 'Kafelki'], ['moje', 'Moje awizacje']];
+  const z = [['kafelki', 'Kafelki'], ['lista', 'Lista tygodnia'], ['firmy', jestAdmin() ? 'Firmy i konta' : 'Firmy']];
+  if (mam('ustawienia')) z.push(['ustawienia', 'Ustawienia']);
+  return z;
 }
 function renderPowloka() {
   const log = S.ja.rola === 'logistyka';
@@ -849,7 +852,7 @@ function renderPowloka() {
   <header class="top">
     <div class="marka">Awizacja${S.db.tryb === 'demo' ? '<span class="tag">demo</span>' : ''}<small>INTER-BOX · ${akt.length === 1 ? esc(akt[0].nazwa) : akt.length + ' rampy'}</small></div>
     <div class="kto">
-      <span><b>${esc(S.ja.imie || S.ja.login)}</b> · ${log ? 'logistyka' : esc(S.firma ? S.firma.nazwa : 'przewoźnik')}</span>
+      <span><b>${esc(S.ja.imie || S.ja.login)}</b> · ${log ? (jestAdmin() ? 'administrator' : 'logistyka') : esc(S.firma ? S.firma.nazwa : 'przewoźnik')}</span>
       <span class="stan" id="stan"></span>
       <button class="lnk" id="bHaslo">Zmień hasło</button>
       <button class="lnk" id="bWyloguj">Wyloguj</button>
@@ -875,6 +878,7 @@ function renderPowloka() {
 }
 function renderWidok() {
   const w = $('#widok'); if (!w || !S.ja) return;
+  if (S.widok === 'ustawienia' && !mam('ustawienia')) S.widok = 'kafelki';
   ({ kafelki: renderKafelki, lista: renderLista, moje: renderMoje, firmy: renderFirmy, ustawienia: renderUstawienia }[S.widok] || renderKafelki)();
 }
 
@@ -1382,6 +1386,14 @@ function renderMoje() {
 /* =====================================================================
    FIRMY I KONTA (logistyka)
    ===================================================================== */
+function komorkaUprawnien(k) {
+  if (k.rola !== 'logistyka') return '<span class="drobne">—</span>';
+  const ja = k.id === S.ja.id;
+  return `<div class="upr">
+    <label title="${ja ? 'Nie możesz odebrać sobie roli administratora' : 'Wszystko, także konta i uprawnienia'}"><input type="checkbox" data-upr="admin" data-k="${esc(k.id)}"${k.admin ? ' checked' : ''}${ja ? ' disabled' : ''}> administrator</label>
+    ${UPRAWNIENIA.map(([p, t]) => `<label><input type="checkbox" data-upr="${p}" data-k="${esc(k.id)}"${k.admin || (k.uprawnienia || []).includes(p) ? ' checked' : ''}${k.admin ? ' disabled' : ''}> ${t}</label>`).join('')}
+  </div>`;
+}
 function adresStrony() { return location.protocol === 'file:' ? '(adres strony po publikacji)' : location.origin + location.pathname; }
 function renderFirmy() {
   const w = $('#widok');
@@ -1390,7 +1402,7 @@ function renderFirmy() {
   const firmyAkt = S.firmy.filter(f => f.aktywna);
   w.innerHTML = `
   <section class="sekcja">
-    <div class="sek-nag"><h2>Firmy przewoźników</h2>${fe ? '' : '<button class="btn maly" id="bNowaFirma">+ Dodaj firmę</button>'}</div>
+    <div class="sek-nag"><h2>Firmy przewoźników</h2>${fe || !mam('firmy') ? '' : '<button class="btn maly" id="bNowaFirma">+ Dodaj firmę</button>'}</div>
     ${fe ? `<form class="formularz" id="fFirma">
       <div class="eyebrow" style="margin-bottom:12px">${fe.id ? 'Edycja firmy' : 'Nowa firma'}</div>
       <div id="fBlad"></div>
@@ -1409,10 +1421,10 @@ function renderFirmy() {
       <div class="akcje"><button class="btn akc" type="submit">Zapisz firmę</button><button class="btn jasny" type="button" id="bAnulujFirme">Anuluj</button></div>
     </form>` : ''}
     ${S.firmy.length ? `<div class="przewin"><table class="tab"><thead><tr><th>Nazwa</th><th>NIP</th><th>Telefon</th><th>E-mail</th><th class="num">Konta</th><th>Status</th><th></th></tr></thead><tbody>
-      ${S.firmy.map(f => `<tr${f.aktywna ? '' : ' class="odw"'}><td><span class="kolor-firmy" style="background:${kolorFirmy(f.id)}"></span><b>${esc(f.nazwa)}</b>${f.uwagi ? `<div class="drobne">${esc(f.uwagi)}</div>` : ''}</td><td class="nw">${esc(f.nip || '')}</td><td class="nw">${esc(f.telefon || '')}</td><td>${esc(f.email || '')}</td><td class="num">${ileKont(f.id)}</td><td class="st">${f.aktywna ? 'aktywna' : 'zablokowana'}</td><td class="nw"><button class="lnk" data-edf="${f.id}">Edytuj</button></td></tr>`).join('')}
+      ${S.firmy.map(f => `<tr${f.aktywna ? '' : ' class="odw"'}><td><span class="kolor-firmy" style="background:${kolorFirmy(f.id)}"></span><b>${esc(f.nazwa)}</b>${f.uwagi ? `<div class="drobne">${esc(f.uwagi)}</div>` : ''}</td><td class="nw">${esc(f.nip || '')}</td><td class="nw">${esc(f.telefon || '')}</td><td>${esc(f.email || '')}</td><td class="num">${ileKont(f.id)}</td><td class="st">${f.aktywna ? 'aktywna' : 'zablokowana'}</td><td class="nw">${mam('firmy') ? `<button class="lnk" data-edf="${f.id}">Edytuj</button>` : ''}</td></tr>`).join('')}
     </tbody></table></div>` : '<p class="pusto">Nie ma jeszcze firm. Dodaj pierwszą firmę przewoźnika.</p>'}
   </section>
-  <section class="sekcja">
+  ${jestAdmin() ? `<section class="sekcja">
     <div class="sek-nag"><h2>Konta</h2>${ke ? '' : '<button class="btn maly" id="bNoweKonto">+ Dodaj konto</button>'}</div>
     ${S.kWynik ? `<div class="wynik"><b>Konto utworzone.</b> Przekaż te dane osobie, która będzie z niego korzystać:
       <pre id="kDane">${esc(S.kWynik)}</pre>
@@ -1431,15 +1443,17 @@ function renderFirmy() {
         <label class="pole"><span>${ke.rola === 'logistyka' ? 'PIN lub hasło *' : 'Hasło *'} (min. 6 znaków)</span>
           <div style="display:flex;gap:6px"><input name="haslo" value="${esc(ke.haslo || '')}" autocomplete="off" spellcheck="false"><button type="button" class="btn jasny" id="bLosuj">Losuj</button></div></label>
       </div>
+      ${ke.rola === 'logistyka' ? `<div class="pole"><span class="et">Uprawnienia</span><div class="dni-check">${[['admin', 'administrator (wszystko, także konta)'], ...UPRAWNIENIA].map(([p, t]) => `<label><input type="checkbox" data-kupr="${p}"${(ke.uprawnienia || []).includes(p) ? ' checked' : ''}> ${t}</label>`).join('')}</div>
+        <p class="drobne" style="margin:6px 0 0">Bez zaznaczeń: rezerwacje, lista tygodnia i podgląd firm.</p></div>` : ''}
       <div class="akcje"><button class="btn akc" type="submit" id="bUtworzKonto">Utwórz konto</button><button class="btn jasny" type="button" id="bAnulujKonto">Anuluj</button></div>
     </form>` : ''}
-    <div class="przewin"><table class="tab"><thead><tr><th>Login</th><th>Imię i nazwisko / opis</th><th>Rola</th><th>Firma</th><th>Status</th><th></th></tr></thead><tbody>
-      ${S.konta.map(k => `<tr${k.aktywny ? '' : ' class="odw"'}><td class="nw"><b>${esc(k.login)}</b></td><td>${esc(k.imie || '')}</td><td>${k.rola === 'logistyka' ? 'logistyka' : 'przewoźnik'}</td><td>${k.firma_id ? esc(nazwaFirmy(k.firma_id)) : '—'}</td><td class="st">${k.aktywny ? 'aktywne' : 'zablokowane'}</td>
+    <div class="przewin"><table class="tab"><thead><tr><th>Login</th><th>Imię i nazwisko / opis</th><th>Rola</th><th>Firma</th><th>Uprawnienia</th><th>Status</th><th></th></tr></thead><tbody>
+      ${S.konta.map(k => `<tr${k.aktywny ? '' : ' class="odw"'}><td class="nw"><b>${esc(k.login)}</b></td><td>${esc(k.imie || '')}</td><td>${k.rola === 'logistyka' ? 'logistyka' : 'przewoźnik'}</td><td>${k.firma_id ? esc(nazwaFirmy(k.firma_id)) : '—'}</td><td>${komorkaUprawnien(k)}</td><td class="st">${k.aktywny ? 'aktywne' : 'zablokowane'}</td>
         <td class="nw">${k.id === S.ja.id ? '<span class="drobne">to Ty</span>' : `<button class="lnk" data-haslo="${esc(k.id)}">Nowe hasło</button> &nbsp; <button class="lnk" data-blok="${esc(k.id)}">${k.aktywny ? 'Zablokuj' : 'Odblokuj'}</button>`}</td></tr>
-        ${S.hasloDla === k.id ? `<tr class="edycja"><td colspan="6"><form id="fNoweHaslo" class="akcje"><span>Nowe hasło dla <b>${esc(k.login)}</b>:</span><input name="h" style="max-width:220px" autocomplete="off" value="${esc(losujHaslo())}"><button class="btn maly" type="submit">Ustaw</button><button class="btn jasny maly" type="button" id="bAnulujHaslo">Anuluj</button><span id="nhBlad" class="drobne"></span></form></td></tr>` : ''}`).join('')}
+        ${S.hasloDla === k.id ? `<tr class="edycja"><td colspan="7"><form id="fNoweHaslo" class="akcje"><span>Nowe hasło dla <b>${esc(k.login)}</b>:</span><input name="h" style="max-width:220px" autocomplete="off" value="${esc(losujHaslo())}"><button class="btn maly" type="submit">Ustaw</button><button class="btn jasny maly" type="button" id="bAnulujHaslo">Anuluj</button><span id="nhBlad" class="drobne"></span></form></td></tr>` : ''}`).join('')}
     </tbody></table></div>
-    <p class="drobne" style="margin-top:12px">Zablokowane konto nie zaloguje się i nie zobaczy danych. Zablokowanie firmy blokuje wszystkie jej konta.</p>
-  </section>`;
+    <p class="drobne" style="margin-top:12px">Zablokowane konto nie zaloguje się i nie zobaczy danych. Zablokowanie firmy blokuje wszystkie jej konta. Zmiana uprawnień działa po odświeżeniu strony u tej osoby.</p>
+  </section>` : `<p class="drobne">${mam('firmy') ? '' : 'Firmy dodaje i zmienia osoba z uprawnieniem „firmy”. '}Konta użytkowników zakłada administrator.</p>`}`;
   const on = (id, fn) => { const el = $('#' + id); if (el) el.onclick = fn; };
   on('bNowaFirma', () => { S.fe = { aktywna: true, kolor: wolnyKolor(S.firmy) }; renderFirmy(); $('#fFirma').nazwa.focus(); });
   on('bAnulujFirme', () => { S.fe = null; renderFirmy(); });
@@ -1457,7 +1471,7 @@ function renderFirmy() {
     try { await S.db.zapiszFirme(dane); S.fe = null; S.firmy = await S.db.firmy(); toast('Firma zapisana.'); renderFirmy(); }
     catch (e) { $('#fBlad').innerHTML = `<div class="komunikat">${esc(e.message)}</div>`; }
   });
-  on('bNoweKonto', () => { S.ke = { rola: 'przewoznik', firma_id: '', login: '', imie: '', haslo: losujHaslo() }; S.kWynik = null; renderFirmy(); const f = $('#fKonto'); (f.firma_id || f.login).focus(); });
+  on('bNoweKonto', () => { S.ke = { rola: 'przewoznik', firma_id: '', login: '', imie: '', haslo: losujHaslo(), uprawnienia: [] }; S.kWynik = null; renderFirmy(); const f = $('#fKonto'); (f.firma_id || f.login).focus(); });
   on('bAnulujKonto', () => { S.ke = null; renderFirmy(); });
   on('bZamknijWynik', () => { S.kWynik = null; renderFirmy(); });
   on('bKopiujDane', async () => { toast(await kopiuj(S.kWynik) ? 'Skopiowano dane logowania.' : 'Nie udało się skopiować.'); });
@@ -1465,6 +1479,7 @@ function renderFirmy() {
   if (fk) {
     fk.addEventListener('input', ev => { const t = ev.target; if (t.name) S.ke[t.name] = t.value; });
     $$('#segRola button').forEach(b => b.onclick = () => { S.ke.rola = b.dataset.r; renderFirmy(); });
+    $$('[data-kupr]', fk).forEach(c => c.onchange = () => { const u = new Set(S.ke.uprawnienia || []); c.checked ? u.add(c.dataset.kupr) : u.delete(c.dataset.kupr); S.ke.uprawnienia = [...u]; });
     on('bLosuj', () => { S.ke.haslo = losujHaslo(); fk.haslo.value = S.ke.haslo; });
     fk.addEventListener('submit', async ev => {
       ev.preventDefault();
@@ -1494,6 +1509,19 @@ function renderFirmy() {
       await S.db.ustawHaslo(k.login, h);
       S.hasloDla = null; S.kWynik = `Awizacja – nowe hasło\nAdres: ${adresStrony()}\nLogin: ${k.login}\nHasło: ${h}`; renderFirmy();
     } catch (e) { $('#nhBlad').textContent = e.message; }
+  });
+  $$('[data-upr]', w).forEach(c => c.onchange = async () => {
+    const k = S.konta.find(x => x.id === c.dataset.k); if (!k) return;
+    let zm;
+    if (c.dataset.upr === 'admin') {
+      if (c.checked && !confirm(`Nadać ${k.login} rolę administratora? Będzie mógł zakładać konta i nadawać uprawnienia.`)) { c.checked = false; return; }
+      zm = { admin: c.checked };
+    } else {
+      const u = new Set(k.uprawnienia || []); c.checked ? u.add(c.dataset.upr) : u.delete(c.dataset.upr); zm = { uprawnienia: [...u] };
+    }
+    try { await S.db.zmienKonto(k.id, zm); S.konta = await S.db.konta(); toast(`Uprawnienia ${k.login} zapisane.`); }
+    catch (e) { toast(e.message, true); }
+    renderFirmy();
   });
   $$('[data-blok]', w).forEach(b => b.onclick = async () => {
     const k = S.konta.find(x => x.id === b.dataset.blok);
