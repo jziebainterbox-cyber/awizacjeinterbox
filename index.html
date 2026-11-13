@@ -1,0 +1,1570 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Awizacja · INTER-BOX</title>
+<style>
+:root{
+  --bg:#f5f4f0; --paper:#ffffff; --ink:#151514; --ink2:#3e3d39; --muted:#7c7a74; --faint:#b9b6ae;
+  --line:#d8d5cd; --line2:#ebe8e2; --accent:#ff5a1f; --accent-soft:#fff1ea; --accent-ink:#c2400f;
+  --odbior:#1d1d1b; --zaj:#e7e4dd; --err:#b8261b; --ok:#1d7a3e; --h:30px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+h2{font-size:20px;letter-spacing:-.01em;margin:0}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lnk{background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;color:inherit}
+.lnk:hover{color:var(--accent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--ink);background:var(--ink);color:#fff;padding:9px 16px;font-weight:600;border-radius:2px;min-height:40px;white-space:nowrap}
+.btn:hover{background:#000}
+.btn.akc{background:var(--accent);border-color:var(--accent)}
+.btn.akc:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+.btn.jasny{background:transparent;color:var(--ink)}
+.btn.jasny:hover{background:var(--ink);color:#fff}
+.btn.zly{background:transparent;color:var(--err);border-color:var(--err)}
+.btn.zly:hover{background:var(--err);color:#fff}
+.btn.maly{min-height:32px;padding:4px 10px;font-size:13px}
+.btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.pelny{width:100%}
+input,select,textarea{width:100%;background:#fff;border:1px solid var(--line);border-radius:2px;padding:8px 10px;min-height:40px}
+textarea{resize:vertical;min-height:60px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-2px;border-color:var(--accent)}
+input:disabled,select:disabled,textarea:disabled{background:#f3f2ee;color:var(--ink2)}
+input[type=checkbox]{width:auto;min-height:0;accent-color:var(--accent);margin:0}
+.pole{display:block;margin:0 0 14px}
+.pole>span,.et{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500}
+.rzad2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--ink);border-radius:2px;overflow:hidden;background:#fff}
+.seg button{flex:1 1 auto;background:#fff;border:0;border-left:1px solid var(--ink);padding:7px 12px;font-weight:600;min-height:38px}
+.seg button:first-child{border-left:0}
+.seg button.akt{background:var(--ink);color:#fff}
+.seg button:disabled{color:var(--faint);background:#f6f5f2;cursor:not-allowed}
+.seg.kafle{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;border:0;background:none;overflow:visible}
+.seg.kafle button{border:1px solid var(--ink);border-radius:2px}
+.komunikat{padding:10px 12px;border-left:3px solid var(--err);background:#fbefed;color:#6f1710;margin:0 0 14px;font-size:13px}
+.komunikat.info{border-color:var(--ink);background:#f1f0ec;color:var(--ink2)}
+.komunikat.ok{border-color:var(--ok);background:#edf6f0;color:#14512a}
+.drobne{font-size:12px;color:var(--muted)}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--accent);color:var(--accent);vertical-align:3px;margin-left:8px}
+
+/* ---------- logowanie ---------- */
+.logowanie{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+.log-lewa{background:var(--ink);color:#fff;padding:48px 56px;display:flex;flex-direction:column;justify-content:space-between;gap:40px}
+.log-lewa .eyebrow{color:rgba(255,255,255,.55)}
+.log-lewa h1{font-size:76px;line-height:.92;letter-spacing:-.035em;margin:14px 0 18px;font-weight:800}
+.log-lewa .lead{font-size:17px;max-width:30ch;color:rgba(255,255,255,.75);margin:0}
+.mozaika{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;max-width:360px}
+.mozaika i{display:block;height:16px;border:1px solid rgba(255,255,255,.16)}
+.mozaika i.o{background:var(--accent);border-color:var(--accent)}
+.mozaika i.x{background:rgba(255,255,255,.88);border-color:transparent}
+.log-prawa{padding:48px 56px;display:flex;align-items:center}
+.log-form{width:100%;max-width:380px}
+.log-form h2{font-size:28px;margin-bottom:22px}
+.tryb{margin-top:28px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.tryb p{margin:0 0 10px}
+.demo-konta{width:100%;border-collapse:collapse;margin:8px 0 12px}
+.demo-konta td{padding:6px 0;border-bottom:1px solid var(--line2)}
+.demo-konta button{background:none;border:0;padding:0;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.linki{display:flex;flex-wrap:wrap;gap:6px 16px}
+#panelPolacz,#panelAdmin{margin-top:14px;padding:14px;border:1px solid var(--line);background:#fff}
+
+/* ---------- powłoka ---------- */
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:20px 28px 0}
+.marka{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.marka small{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:7px}
+.kto{display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--ink2)}
+.stan{font-size:12px;color:var(--muted);white-space:nowrap}
+.stan i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--faint);margin-right:6px;vertical-align:1px}
+.stan.zywo i{background:var(--ok)} .stan.blad i{background:var(--err)} .stan.demo i{background:var(--accent)}
+.zakladki{display:flex;gap:28px;padding:0 28px;border-bottom:1px solid var(--line);margin-top:18px;overflow-x:auto}
+.zakladki button{background:none;border:0;padding:12px 0 10px;border-bottom:2px solid transparent;color:var(--muted);font-weight:600;white-space:nowrap;margin-bottom:-1px}
+.zakladki button:hover{color:var(--ink)}
+.zakladki button.akt{color:var(--ink);border-color:var(--accent)}
+main{padding:22px 28px 70px}
+.stopka{padding:0 28px 30px;font-size:12px;color:var(--faint)}
+
+/* ---------- pasek tygodnia ---------- */
+.pasek{display:flex;align-items:flex-end;gap:14px 22px;flex-wrap:wrap;margin-bottom:12px}
+.tyg{font-size:36px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.tyg small{display:block;font-size:14px;font-weight:500;color:var(--muted);letter-spacing:0;margin-top:6px}
+.nav{display:flex}
+.nav button{background:#fff;border:1px solid var(--ink);min-width:40px;height:36px;padding:0 12px;font-weight:600;margin-left:-1px}
+.nav button:first-child{margin-left:0}
+.nav button:hover{background:var(--ink);color:#fff}
+.legenda{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-left:auto}
+.legenda span{white-space:nowrap}
+.legenda i{display:inline-block;width:16px;height:12px;vertical-align:-2px;margin-right:6px;border:1px solid var(--line)}
+.legenda i.l-wolne{background:#fff}
+.legenda i.l-dostawa{background:var(--accent);border-color:var(--accent)}
+.legenda i.l-odbior{background:var(--odbior);border-color:var(--odbior)}
+.legenda i.l-zaj{background:var(--zaj);background-image:repeating-linear-gradient(135deg,transparent 0 4px,rgba(0,0,0,.08) 4px 5px)}
+.legenda i.l-niedost{background:#f0eee9}
+.podpowiedz{margin:0 0 14px;color:var(--ink2);font-size:13px}
+
+/* ---------- siatka kafelków ---------- */
+.siatka{display:grid;grid-template-columns:54px repeat(var(--n),minmax(0,1fr));background:var(--paper);border-top:2px solid var(--ink);border-bottom:1px solid var(--line)}
+.kol{position:relative;border-left:1px solid var(--line);min-width:0}
+.kol.czasy{border-left:0}
+.nag{position:sticky;top:0;z-index:6;background:var(--paper);height:72px;padding:6px 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;overflow:hidden;white-space:nowrap}
+.nag span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.nag b{font-size:21px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
+.nag small{font-size:11px;color:var(--muted)}
+.nag.dzis{box-shadow:inset 0 -3px 0 var(--accent)}
+.nag.dzis b{color:var(--accent)}
+.cialo{position:relative;height:calc(var(--h) * var(--wiersze))}
+.et-cz{position:absolute;right:9px;margin-top:8px;font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums;line-height:1}
+.et-cz.pelna{color:var(--ink2);font-weight:600}
+.kaf{position:absolute;left:3px;right:3px;height:calc(var(--h) - 3px);margin-top:1px;border:1px solid var(--line2);background:#fff;border-radius:2px;padding:0 8px;font-size:12px;font-weight:600;color:transparent;text-align:left;display:flex;align-items:center;white-space:nowrap;overflow:hidden}
+.kaf.wolne:hover,.kaf.wolne:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+.kaf.wolne:hover::after,.kaf.wolne:focus-visible::after{content:'+ ' attr(data-g)}
+.kaf.wyb{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+.kaf.wyb::after{content:none!important}
+.kaf.minione,.kaf.zapozno{background:#f3f2ee;border-color:transparent;cursor:not-allowed}
+.kaf.poza,.kaf.swieto{background:#f3f2ee repeating-linear-gradient(135deg,transparent 0 6px,rgba(0,0,0,.04) 6px 7px);border-color:transparent;cursor:not-allowed}
+.kaf.pod{visibility:hidden}
+.kol.swieto .cialo{background:repeating-linear-gradient(135deg,transparent 0 8px,rgba(255,90,31,.07) 8px 9px)}
+.kol.swieto .kaf.wolne{background:rgba(255,255,255,.7)}
+.rez{position:absolute;left:3px;right:3px;margin-top:1px;z-index:2;border-radius:2px;padding:4px 8px;font-size:12px;line-height:1.3;overflow:hidden;color:#fff;cursor:pointer;outline:none}
+.rez .r1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rez .r2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.82;font-size:11px;font-variant-numeric:tabular-nums}
+.rez.dostawa{background:var(--accent)}
+.rez.odbior{background:var(--odbior)}
+.rez:hover,.rez:focus-visible{box-shadow:0 0 0 2px var(--paper),0 0 0 3px var(--ink)}
+.rez.obce{background:var(--zaj) repeating-linear-gradient(135deg,transparent 0 7px,rgba(0,0,0,.05) 7px 8px);color:var(--muted);cursor:default;display:flex;align-items:center}
+.rez.obce:hover{box-shadow:none}
+.rez.krotka{display:flex;align-items:center;padding-top:0;padding-bottom:0}
+.teraz{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--accent);z-index:4;pointer-events:none}
+.teraz::before{content:'';position:absolute;left:-1px;top:-5px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.dni-chipy{display:flex;gap:6px;margin:0 0 12px}
+.dni-chipy button{flex:1 1 0;min-width:0;background:#fff;border:1px solid var(--line);padding:6px 2px;border-radius:2px;display:flex;flex-direction:column;align-items:center;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.dni-chipy button b{font-size:18px;color:var(--ink);letter-spacing:0;line-height:1.2}
+.dni-chipy button.dzis b{color:var(--accent)}
+.dni-chipy button.akt{border-color:var(--ink);background:var(--ink);color:#fff}
+.dni-chipy button.akt b{color:#fff}
+.pusto{padding:40px 0;color:var(--muted)}
+
+/* ---------- szuflada ---------- */
+.zaslona{position:fixed;inset:0;background:rgba(21,21,20,.28);z-index:50;opacity:0;pointer-events:none;transition:opacity .15s}
+.zaslona.otw{opacity:1;pointer-events:auto}
+.szuflada{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--paper);z-index:51;border-left:2px solid var(--ink);transform:translateX(102%);transition:transform .18s ease-out;display:flex;flex-direction:column}
+.szuflada.otw{transform:none}
+.sz-nag{position:relative;padding:20px 56px 16px 24px;border-bottom:1px solid var(--line)}
+.sz-czas{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin-top:6px;font-variant-numeric:tabular-nums}
+.sz-dzien{color:var(--ink2);margin-top:4px}
+.zamknij{position:absolute;top:14px;right:14px;width:36px;height:36px;border:1px solid var(--line);background:#fff;font-size:20px;line-height:1}
+.zamknij:hover{border-color:var(--ink)}
+.sz-tresc{padding:20px 24px;overflow:auto;flex:1}
+.sz-stopka{padding:14px 24px;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;background:var(--paper)}
+.meta{font-size:12px;color:var(--muted);border-top:1px solid var(--line2);padding-top:12px;margin-top:4px}
+.meta div{margin-bottom:3px}
+.odwolanie{border:1px solid var(--err);padding:14px;margin-top:6px}
+
+/* ---------- tabele i sekcje ---------- */
+.sekcja{margin-bottom:38px}
+.sek-nag{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.przewin{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.tab{width:100%;border-collapse:collapse;font-size:13px;background:var(--paper)}
+.tab th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--ink);white-space:nowrap}
+.tab td{padding:9px 10px;border-bottom:1px solid var(--line2);vertical-align:top}
+.tab td.num,.tab th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tab td.nw{white-space:nowrap}
+.tab tr.klik{cursor:pointer}
+.tab tr.klik:hover td{background:#faf9f6}
+.tab tr.odw td{color:var(--faint)}
+.tab tr.odw td.st{color:var(--err)}
+.tab tr.dzien td{background:var(--bg);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);padding-top:14px}
+.tab tr.edycja td{background:#faf9f6}
+.kropka{display:inline-block;width:9px;height:9px;margin-right:6px;vertical-align:0}
+.kropka.dostawa{background:var(--accent)} .kropka.odbior{background:var(--odbior)}
+.formularz{background:#fff;border:1px solid var(--ink);padding:18px;margin-bottom:16px}
+.formularz .siatka-pol{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 14px}
+.siatka-pol{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:0 16px}
+.dni-check{display:flex;flex-wrap:wrap;gap:8px}
+.dni-check label{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;padding:8px 12px;cursor:pointer}
+.chipy{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;padding:4px 4px 4px 10px;font-size:13px}
+.chip button{border:0;background:none;width:24px;height:24px;font-size:16px;line-height:1;color:var(--muted)}
+.chip button:hover{color:var(--err)}
+.akcje{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.wynik{border:2px solid var(--ok);background:#fff;padding:16px;margin-bottom:16px}
+.wynik pre{background:var(--bg);padding:10px 12px;margin:10px 0;font:13px/1.6 Consolas,"Courier New",monospace;white-space:pre-wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;z-index:90;font-size:13px;max-width:calc(100% - 32px);border-left:4px solid var(--ok)}
+.toast.blad{border-left-color:var(--err)}
+
+@media (max-width:760px){
+  .logowanie{grid-template-columns:1fr}
+  .log-lewa{padding:28px 16px 24px;gap:22px}
+  .log-lewa h1{font-size:46px;margin:8px 0 10px}
+  .log-lewa .lead{font-size:15px}
+  .mozaika{display:none}
+  .log-prawa{padding:24px 16px 40px}
+  .top{padding:14px 16px 0}
+  .marka{font-size:24px}
+  .kto{gap:6px 16px}
+  .kto>span:first-child{flex-basis:100%}
+  .et-cz{margin-top:13px}
+  .zakladki{padding:0 16px;gap:20px;margin-top:12px}
+  main{padding:16px 16px 60px}
+  .stopka{padding:0 16px 24px}
+  .tyg{font-size:28px}
+  .legenda{margin-left:0}
+  .rzad2{grid-template-columns:1fr}
+  .siatka{grid-template-columns:48px repeat(var(--n),minmax(0,1fr))}
+  .sz-czas{font-size:28px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+/* =====================================================================
+   AWIZACJA v1 — rezerwacja okien czasowych na rampie
+   Bez Supabase działa w trybie DEMO (dane tylko w tej przeglądarce).
+   Żeby podłączyć prawdziwą bazę, wpisz adres i klucz anon poniżej
+   (albo na ekranie logowania: „Połącz z Supabase…”).
+   ===================================================================== */
+const KONFIG = {
+  supabaseUrl:   'https://stmmmoyfbsvldhrndbyc.supabase.co',
+  supabaseKlucz: 'sb_publishable_ttqHFipUCztUzqDCXcimBg_BQOhw3pQ',   // klucz publiczny (publishable) — NIGDY „secret” / „service_role”
+  domena:  'inter-box.pl',   // techniczny adres konta: awizacja+LOGIN@inter-box.pl
+  prefiks: 'awizacja+',
+  supabaseJs: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0'
+};
+const WERSJA = 'v1.1';
+
+/* ---------- drobiazgi ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const hhmm = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
+const dzienStart = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const dodajDni = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const poniedzialek = d => { const x = dzienStart(d); return dodajDni(x, -((x.getDay() + 6) % 7)); };
+const isoDzien = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const zIso = s => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d); };
+const minutyDnia = t => t.getHours() * 60 + t.getMinutes();
+const naDzien = (dz, min) => new Date(dz.getFullYear(), dz.getMonth(), dz.getDate(), 0, min);
+const isoDow = d => ((d.getDay() + 6) % 7) + 1;
+const DNI = ['pon', 'wt', 'śr', 'czw', 'pt', 'sob', 'nd'];
+const DNI_PELNE = ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota', 'niedziela'];
+const MIES = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
+const fmtGodz = d => pad(d.getHours()) + ':' + pad(d.getMinutes());
+const fmtData = d => d.getDate() + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear();
+const fmtKrotko = d => DNI[isoDow(d) - 1] + ' ' + d.getDate() + '.' + pad(d.getMonth() + 1);
+const fmtDlugo = d => DNI_PELNE[isoDow(d) - 1] + ', ' + d.getDate() + ' ' + MIES[d.getMonth()];
+const fmtKiedy = s => { if (!s) return ''; const d = new Date(s); return fmtData(d) + ' ' + fmtGodz(d); };
+const fmtDl = min => min < 60 ? min + ' min' : (min / 60).toString().replace('.', ',') + ' h';
+const odm = (n, jeden, kilka, wiele) => n === 1 ? jeden : ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? kilka : wiele);
+const odmianaAut = n => odm(n, 'auto', 'auta', 'aut');
+const nazwaRodzaju = r => r === 'odbior' ? 'odbiór' : 'dostawa';
+function tydzienISO(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dn = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dn);
+  const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - y0) / 864e5 + 1) / 7);
+}
+function zakresTxt(dni) {
+  if (!dni.length) return '';
+  const a = dni[0], b = dni[dni.length - 1];
+  if (a.getFullYear() !== b.getFullYear()) return `${a.getDate()} ${MIES[a.getMonth()]} ${a.getFullYear()} – ${b.getDate()} ${MIES[b.getMonth()]} ${b.getFullYear()}`;
+  if (a.getMonth() !== b.getMonth()) return `${a.getDate()} ${MIES[a.getMonth()]} – ${b.getDate()} ${MIES[b.getMonth()]} ${b.getFullYear()}`;
+  return `${a.getDate()}–${b.getDate()} ${MIES[a.getMonth()]} ${a.getFullYear()}`;
+}
+function loginNaEmail(l) { l = String(l || '').trim().toLowerCase(); return l.includes('@') ? l : KONFIG.prefiks + l + '@' + KONFIG.domena; }
+function losujHaslo(n = 8) { const z = 'abcdefghjkmnpqrstuvwxyz23456789'; const t = new Uint32Array(n); crypto.getRandomValues(t); return [...t].map(x => z[x % z.length]).join(''); }
+async function kopiuj(txt) {
+  try { await navigator.clipboard.writeText(txt); return true; } catch (e) {
+    const t = document.createElement('textarea'); t.value = txt; t.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(t); t.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (_) {} t.remove(); return ok;
+  }
+}
+
+/* ---------- święta ustawowe ---------- */
+function wielkanoc(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mies = Math.floor((h + l - 7 * m + 114) / 31), dz = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(y, mies - 1, dz);
+}
+function swieta(y) {
+  const w = wielkanoc(y);
+  return [[0, 1], [0, 6], [4, 1], [4, 3], [7, 15], [10, 1], [10, 11], [11, 24], [11, 25], [11, 26]]
+    .map(([m, d]) => new Date(y, m, d)).concat([dodajDni(w, 1), dodajDni(w, 60)]).map(isoDzien).sort();
+}
+
+/* ---------- zasady rezerwacji (te same co w bazie) ---------- */
+function walidujCzas(a, rola, ust, rampy, teraz = new Date()) {
+  const p = new Date(a.poczatek), k = new Date(a.koniec);
+  if (!(k > p)) return 'Koniec musi być po początku.';
+  const r = rampy.find(r => r.id === a.rampa_id);
+  if (!r || !r.aktywna) return 'Ta rampa jest nieaktywna.';
+  if (rola !== 'przewoznik') return null;
+  if (p < new Date(teraz.getTime() + ust.min_wyprzedzenie * 60000)) return `Rezerwacja jest możliwa najpóźniej ${ust.min_wyprzedzenie} min przed oknem.`;
+  const dz = dzienStart(p);
+  if (dz > dodajDni(dzienStart(teraz), ust.dni_naprzod)) return `Można rezerwować najwyżej ${ust.dni_naprzod} dni naprzód.`;
+  if (!ust.dni_robocze.includes(isoDow(dz)) || ust.dni_wolne.includes(isoDzien(dz))) return 'Ten dzień jest wolny – rampa nie przyjmuje aut.';
+  const m0 = minutyDnia(p);
+  const m1 = isoDzien(k) === isoDzien(p) ? minutyDnia(k) : (isoDzien(k) === isoDzien(dodajDni(dz, 1)) && minutyDnia(k) === 0 ? 1440 : 99999);
+  if (p.getSeconds() || m0 < ust.od_min || m1 > ust.do_min) return `Rampa przyjmuje auta od ${hhmm(ust.od_min)} do ${hhmm(ust.do_min)}.`;
+  if ((m0 - ust.od_min) % ust.okno_min || (m1 - m0) % ust.okno_min) return `Rezerwacja musi zaczynać się i kończyć na granicy okna (${ust.okno_min} min).`;
+  if (m1 - m0 > ust.max_okien * ust.okno_min) return `Jedna rezerwacja może trwać najwyżej ${ust.max_okien * ust.okno_min} min.`;
+  return null;
+}
+
+/* =====================================================================
+   BAZA DEMO — localStorage, te same zasady co w Supabase
+   ===================================================================== */
+function demoDane() {
+  const rok = new Date().getFullYear();
+  const ust = { id: 1, okno_min: 30, od_min: 360, do_min: 1320, dni_robocze: [1, 2, 3, 4, 5], dni_wolne: [...swieta(rok), ...swieta(rok + 1)], dni_naprzod: 14, min_wyprzedzenie: 60, odwolanie_min: 120, max_okien: 4, strefa: 'Europe/Warsaw' };
+  const teraz = new Date().toISOString();
+  const firmy = [
+    { id: 1, nazwa: 'TransDemo Sp. z o.o.', nip: '000-000-00-01', telefon: '600 100 200', email: 'dyspozycja@transdemo.example', uwagi: null, aktywna: true, utworzono: teraz },
+    { id: 2, nazwa: 'Spedycja Próbna', nip: '000-000-00-02', telefon: '600 200 300', email: 'biuro@probna.example', uwagi: null, aktywna: true, utworzono: teraz },
+    { id: 3, nazwa: 'Auto-Kurier Test', nip: '000-000-00-03', telefon: '600 300 400', email: 'kontakt@kurier-test.example', uwagi: null, aktywna: true, utworzono: teraz }
+  ];
+  const konta = [
+    { id: 'u-biuro', login: 'biuro', imie: 'Biuro logistyki', rola: 'logistyka', firma_id: null, aktywny: true, haslo: '123456', utworzono: teraz },
+    { id: 'u-trans', login: 'transdemo', imie: 'Dyspozytor TransDemo', rola: 'przewoznik', firma_id: 1, aktywny: true, haslo: 'demo1234', utworzono: teraz },
+    { id: 'u-prob', login: 'probna', imie: 'Spedycja Próbna', rola: 'przewoznik', firma_id: 2, aktywny: true, haslo: 'demo1234', utworzono: teraz }
+  ];
+  const rampy = [{ id: 1, kod: 'R1', nazwa: 'Rampa 1', kolejnosc: 1, aktywna: true }];
+  const wzory = [
+    [420, 60, 2, 'dostawa', 'WPR 4K217', 'Marek Nowak', '600 200 301', 33, 'ZAM/118'],
+    [570, 30, 3, 'odbior', 'WOS 12345', 'Piotr Zieliński', '600 300 402', 6, 'WZ 845'],
+    [660, 90, 1, 'odbior', 'WGM 7L310', 'Tomasz Wiśniewski', '600 100 203', 24, 'WZ 846'],
+    [810, 60, 2, 'odbior', 'NOS 2C885', 'Adam Lewandowski', '600 200 304', 18, null],
+    [930, 60, 1, 'dostawa', 'WPI 90H11', 'Krzysztof Wójcik', '600 100 205', 33, 'ZAM/121'],
+    [1080, 30, 3, 'dostawa', 'WX 5512K', 'Paweł Kamiński', '600 300 406', 4, null]
+  ];
+  const tworca = { 1: 'u-trans', 2: 'u-prob', 3: 'u-biuro' };
+  const awz = []; let id = 0; const dzis = dzienStart(new Date());
+  for (let k = -3; k <= 10; k++) {
+    const d = dodajDni(dzis, k);
+    if (!ust.dni_robocze.includes(isoDow(d)) || ust.dni_wolne.includes(isoDzien(d))) continue;
+    wzory.forEach((w, j) => {
+      if (j > 1 && (j + k + 30) % 3 === 0) return;
+      awz.push({
+        id: ++id, rampa_id: 1, poczatek: naDzien(d, w[0]).toISOString(), koniec: naDzien(d, w[0] + w[1]).toISOString(),
+        rodzaj: w[3], firma_id: w[2], nr_rej: w[4], kierowca: w[5], telefon: w[6], palety: w[7], nr_dokumentu: w[8], uwagi: null,
+        status: 'aktywna', powod_odwolania: null, utworzyl: tworca[w[2]], utworzono: teraz, zmienil: null, zmieniono: null, odwolal: null, odwolano: null
+      });
+    });
+  }
+  const odw = awz.find(a => new Date(a.poczatek) > new Date() && a.firma_id === 1);
+  if (odw) Object.assign(odw, { status: 'odwolana', powod_odwolania: 'Towar nie był gotowy u nadawcy', odwolal: 'u-trans', odwolano: teraz });
+  return { wersja: 1, seq: id, seqF: 3, seqR: 1, ust, firmy, konta, rampy, awizacje: awz };
+}
+
+function DemoDB() {
+  const K = 'awizacja.demo.v1', KS = 'awizacja.demo.sesja';
+  const kopia = o => JSON.parse(JSON.stringify(o));
+  const iso = s => new Date(s).toISOString();
+  const blad = (msg, code) => { const e = new Error(msg); if (code) e.code = code; return e; };
+  function pisz(d) { try { localStorage.setItem(K, JSON.stringify(d)); } catch (e) {} }
+  function czytaj() {
+    let d = null; try { d = JSON.parse(localStorage.getItem(K) || 'null'); } catch (e) {}
+    if (!d || d.wersja !== 1) { d = demoDane(); pisz(d); }
+    return d;
+  }
+  function sesjaId() { try { return sessionStorage.getItem(KS); } catch (e) { return null; } }
+  function kto() {
+    const d = czytaj(); const p = d.konta.find(k => k.id === sesjaId());
+    if (!p) throw blad('Sesja wygasła – zaloguj się ponownie.');
+    let rola = null;
+    if (p.aktywny) {
+      if (p.rola === 'logistyka') rola = 'logistyka';
+      else { const f = d.firmy.find(f => f.id === p.firma_id); if (f && f.aktywna) rola = 'przewoznik'; }
+    }
+    if (!rola) throw blad('Konto albo firma jest zablokowana. Skontaktuj się z logistyką.');
+    return { d, p, rola };
+  }
+  const tylkoLog = rola => { if (rola !== 'logistyka') throw blad('Brak uprawnień do tej operacji.'); };
+  const bezHasla = p => { const { haslo, ...r } = p; return r; };
+  const nachodzi = (a, b) => new Date(a.poczatek) < new Date(b.koniec) && new Date(b.poczatek) < new Date(a.koniec);
+  function sprawdzZapis(d, rola, p, nowy, stary) {
+    const ust = d.ust;
+    if (rola === 'przewoznik') {
+      nowy.firma_id = p.firma_id;
+      if (stary) {
+        if (stary.status !== 'aktywna') throw blad('Ta awizacja jest już odwołana.');
+        if (new Date(stary.poczatek) < new Date(Date.now() + ust.odwolanie_min * 60000)) throw blad(`Zmiana lub odwołanie jest możliwe najpóźniej ${ust.odwolanie_min} min przed oknem. Zadzwoń do logistyki.`);
+      }
+    }
+    nowy.nr_rej = String(nowy.nr_rej || '').trim().replace(/\s+/g, ' ').toUpperCase();
+    if (!nowy.nr_rej) throw blad('Podaj numer rejestracyjny.');
+    if (nowy.status === 'odwolana') return;
+    const czasZm = !stary || nowy.poczatek !== stary.poczatek || nowy.koniec !== stary.koniec || nowy.rampa_id !== stary.rampa_id || stary.status !== 'aktywna';
+    if (!czasZm) return;
+    const b = walidujCzas(nowy, rola, ust, d.rampy); if (b) throw blad(b);
+    if (d.awizacje.some(x => x.status === 'aktywna' && x.id !== nowy.id && x.rampa_id === nowy.rampa_id && nachodzi(x, nowy)))
+      throw blad('To okno jest już zajęte – ktoś właśnie je zarezerwował. Widok został odświeżony.', '23P01');
+  }
+  const db = {
+    tryb: 'demo',
+    async sesja() { if (!sesjaId()) return null; try { return bezHasla(kto().p); } catch (e) { return null; } },
+    async zaloguj(login, haslo) {
+      const d = czytaj(); const l = String(login).trim().toLowerCase();
+      const p = d.konta.find(k => k.login === l);
+      if (!p || p.haslo !== haslo) throw blad('Zły login lub hasło.');
+      try { sessionStorage.setItem(KS, p.id); } catch (e) {}
+      try { kto(); } catch (e) { try { sessionStorage.removeItem(KS); } catch (_) {} throw e; }
+      return bezHasla(p);
+    },
+    async wyloguj() { try { sessionStorage.removeItem(KS); } catch (e) {} },
+    async zmienMojeHaslo(h) { const { d, p } = kto(); d.konta.find(k => k.id === p.id).haslo = h; pisz(d); },
+    async ustawienia() { const { d } = kto(); return kopia(d.ust); },
+    async rampy() { const { d } = kto(); return kopia(d.rampy).sort((a, b) => a.kolejnosc - b.kolejnosc || a.id - b.id); },
+    async firmy() { const { d, p, rola } = kto(); return kopia(d.firmy.filter(f => rola === 'logistyka' || f.id === p.firma_id)).sort((a, b) => a.nazwa.localeCompare(b.nazwa, 'pl')); },
+    async zajetosc(od, doo) {
+      const { d } = kto();
+      return d.awizacje.filter(a => a.status === 'aktywna' && new Date(a.poczatek) < doo && new Date(a.koniec) > od)
+        .map(a => ({ id: a.id, rampa_id: a.rampa_id, poczatek: a.poczatek, koniec: a.koniec }));
+    },
+    async awizacje(od, doo) {
+      const { d, p, rola } = kto();
+      return kopia(d.awizacje.filter(a => (rola === 'logistyka' || a.firma_id === p.firma_id) && new Date(a.poczatek) < doo && new Date(a.koniec) > od))
+        .sort((a, b) => new Date(a.poczatek) - new Date(b.poczatek));
+    },
+    async moje() {
+      const { d, p, rola } = kto(); const od = Date.now() - 30 * 864e5;
+      return kopia(d.awizacje.filter(a => (rola === 'logistyka' || a.firma_id === p.firma_id) && new Date(a.koniec).getTime() >= od));
+    },
+    async dodaj(rek) {
+      const { d, p, rola } = kto(); const teraz = new Date().toISOString();
+      const a = { ...rek, id: d.seq + 1, status: 'aktywna', poczatek: iso(rek.poczatek), koniec: iso(rek.koniec), utworzyl: p.id, utworzono: teraz, zmienil: null, zmieniono: null, odwolal: null, odwolano: null, powod_odwolania: null };
+      sprawdzZapis(d, rola, p, a, null);
+      d.seq++; d.awizacje.push(a); pisz(d); return kopia(a);
+    },
+    async zmien(id, z) {
+      const { d, p, rola } = kto(); const teraz = new Date().toISOString();
+      const i = d.awizacje.findIndex(a => a.id === id && (rola === 'logistyka' || a.firma_id === p.firma_id));
+      if (i < 0) throw blad('Nie znaleziono awizacji (albo brak uprawnień).');
+      const stary = d.awizacje[i];
+      const a = { ...stary, ...z, id: stary.id, utworzyl: stary.utworzyl, utworzono: stary.utworzono };
+      if (z.poczatek) a.poczatek = iso(z.poczatek);
+      if (z.koniec) a.koniec = iso(z.koniec);
+      sprawdzZapis(d, rola, p, a, stary);
+      a.zmienil = p.id; a.zmieniono = teraz;
+      if (a.status === 'odwolana') {
+        a.poczatek = stary.poczatek; a.koniec = stary.koniec; a.rampa_id = stary.rampa_id;
+        if (stary.status === 'aktywna') { a.odwolal = p.id; a.odwolano = teraz; }
+      } else if (stary.status === 'odwolana') { a.odwolal = null; a.odwolano = null; a.powod_odwolania = null; }
+      d.awizacje[i] = a; pisz(d); return kopia(a);
+    },
+    async odwolaj(id, powod) { return db.zmien(id, { status: 'odwolana', powod_odwolania: powod || null }); },
+    async konta() { const { d, rola } = kto(); tylkoLog(rola); return d.konta.map(bezHasla).sort((a, b) => a.login.localeCompare(b.login, 'pl')); },
+    async dodajKonto(k) {
+      const { d, rola } = kto(); tylkoLog(rola);
+      const l = k.login.trim().toLowerCase();
+      if (d.konta.some(x => x.login === l)) throw blad('Taki login już istnieje.');
+      if ((k.haslo || '').length < 6) throw blad('Hasło musi mieć co najmniej 6 znaków.');
+      d.konta.push({ id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), login: l, imie: k.imie || null, rola: k.rola, firma_id: k.rola === 'przewoznik' ? +k.firma_id : null, aktywny: true, haslo: k.haslo, utworzono: new Date().toISOString() });
+      pisz(d);
+    },
+    async zmienKonto(id, z) {
+      const { d, rola } = kto(); tylkoLog(rola);
+      const k = d.konta.find(x => x.id === id); if (!k) throw blad('Nie ma takiego konta.');
+      ['aktywny', 'imie', 'firma_id'].forEach(p => { if (p in z) k[p] = z[p]; }); pisz(d);
+    },
+    async ustawHaslo(login, h) {
+      const { d, rola } = kto(); tylkoLog(rola);
+      if ((h || '').length < 6) throw blad('Hasło musi mieć co najmniej 6 znaków.');
+      const k = d.konta.find(x => x.login === login); if (!k) throw blad('Nie ma konta ' + login + '.');
+      k.haslo = h; pisz(d);
+    },
+    async zapiszFirme(f) {
+      const { d, rola } = kto(); tylkoLog(rola);
+      if (f.id) { const x = d.firmy.find(y => y.id === f.id); Object.assign(x, f); }
+      else d.firmy.push({ ...f, id: ++d.seqF, utworzono: new Date().toISOString() });
+      pisz(d);
+    },
+    async zapiszUstawienia(u) { const { d, rola } = kto(); tylkoLog(rola); d.ust = { ...d.ust, ...u, id: 1 }; pisz(d); },
+    async zapiszRampe(r) {
+      const { d, rola } = kto(); tylkoLog(rola);
+      if (d.rampy.some(x => x.kod === r.kod && x.id !== r.id)) throw blad('Rampa o kodzie ' + r.kod + ' już istnieje.');
+      if (r.id) Object.assign(d.rampy.find(x => x.id === r.id), r); else d.rampy.push({ ...r, id: ++d.seqR });
+      pisz(d);
+    },
+    nasluchuj(cb, stan) {
+      const h = e => { if (e.key === K) cb(true); };
+      window.addEventListener('storage', h); stan && stan('demo');
+      return () => window.removeEventListener('storage', h);
+    },
+    resetuj() { try { localStorage.removeItem(K); sessionStorage.removeItem(KS); } catch (e) {} }
+  };
+  return db;
+}
+
+/* =====================================================================
+   BAZA SUPABASE
+   ===================================================================== */
+function wczytajSkrypt(src) {
+  return new Promise((ok, nie) => {
+    const s = document.createElement('script'); s.src = src; s.onload = ok;
+    s.onerror = () => nie(new Error('Nie udało się pobrać biblioteki Supabase (brak internetu?).'));
+    document.head.appendChild(s);
+  });
+}
+function bladSb(e) {
+  if (!e) return new Error('Nieznany błąd.');
+  const m = e.message || String(e);
+  let x;
+  if (e.code === '23P01') { x = new Error('To okno jest już zajęte – ktoś właśnie je zarezerwował. Widok został odświeżony.'); x.code = '23P01'; return x; }
+  if (e.code === '42501' || /row-level security|permission denied/i.test(m)) return new Error('Brak uprawnień do tej operacji.');
+  if (e.code === '42P01' || e.code === 'PGRST205' || /does not exist|schema cache/i.test(m)) return new Error('Baza nie jest przygotowana – uruchom plik awizacja-baza.sql w Supabase (SQL Editor).');
+  if (e.code === '23505') return new Error('Taki wpis już istnieje (powtórzony login, kod albo adres).');
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return new Error('Brak połączenia z bazą. Sprawdź internet i spróbuj ponownie.');
+  return new Error(m);
+}
+function bladAuth(e, email) {
+  const m = (e && e.message) || String(e);
+  if (/Invalid login credentials/i.test(m)) return new Error('Zły login lub hasło.');
+  if (/Email not confirmed/i.test(m)) return new Error('Konto czeka na potwierdzenie e-mail. W Supabase wyłącz „Confirm email” (Authentication → Sign In / Providers → Email).');
+  if (/already registered|already been registered|already exists/i.test(m)) return new Error('Taki login już istnieje.');
+  if (/Signups not allowed|signup.*disabled/i.test(m)) return new Error('W Supabase wyłączone jest zakładanie kont. Włącz „Allow new users to sign up” (Authentication → Sign In / Providers).');
+  if (/Database error saving new user/i.test(m)) return new Error('Baza nie przyjęła konta – nie zostało przygotowane w programie (albo minął termin). Dla admina: uruchom ponownie awizacja-baza.sql.');
+  if (/email/i.test(m) && /invalid/i.test(m)) return new Error('Supabase odrzucił techniczny adres konta (' + (email || '') + '). Zmień KONFIG.domena w pliku programu.');
+  if (/Password should|password.*(short|least|weak)/i.test(m)) return new Error('Hasło jest za krótkie albo za słabe (min. 6 znaków).');
+  if (/rate limit|too many/i.test(m)) return new Error('Za dużo prób – odczekaj kilka minut.');
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return new Error('Brak połączenia z bazą. Sprawdź internet.');
+  return new Error(m);
+}
+async function utworzSupaDB(url, klucz) {
+  if (!(window.supabase && window.supabase.createClient)) await wczytajSkrypt(KONFIG.supabaseJs);
+  const opcjeAuth = { persistSession: true, autoRefreshToken: true, storageKey: 'awizacja.auth' };
+  const sb = window.supabase.createClient(url, klucz, { auth: opcjeAuth });
+  const dane = r => { if (r.error) throw bladSb(r.error); return r.data; };
+  async function profil(uid) {
+    const p = dane(await sb.from('profile').select('*').eq('id', uid).maybeSingle());
+    if (!p) throw new Error('To konto nie ma profilu w programie Awizacja. Poproś logistykę o założenie konta.');
+    const rola = dane(await sb.rpc('moja_rola'));
+    if (!rola) throw new Error('Konto albo firma jest zablokowana. Skontaktuj się z logistyką.');
+    return p;
+  }
+  const db = {
+    tryb: 'supabase', host: new URL(url).host, sb,
+    async sesja() { const { data } = await sb.auth.getSession(); if (!data.session) return null; return profil(data.session.user.id); },
+    async zaloguj(login, haslo) {
+      const email = loginNaEmail(login);
+      const r = await sb.auth.signInWithPassword({ email, password: haslo });
+      if (r.error) throw bladAuth(r.error, email);
+      try { return await profil(r.data.user.id); } catch (e) { await sb.auth.signOut().catch(() => {}); throw e; }
+    },
+    async wyloguj() { await sb.auth.signOut().catch(() => {}); },
+    async zmienMojeHaslo(h) { const r = await sb.auth.updateUser({ password: h }); if (r.error) throw bladAuth(r.error); },
+    async utworzAdmina(h) {
+      const email = loginNaEmail('admin');
+      const r = await sb.auth.signUp({ email, password: h });
+      if (r.error) throw bladAuth(r.error, email);
+      if (!r.data.session) throw new Error('Konto admina powstało, ale Supabase czeka na potwierdzenie e-mail. Wyłącz „Confirm email” (Authentication → Sign In / Providers → Email) i zaloguj się loginem admin.');
+      return profil(r.data.user.id);
+    },
+    async ustawienia() { return dane(await sb.from('ustawienia').select('*').eq('id', 1).single()); },
+    async rampy() { return dane(await sb.from('rampy').select('*').order('kolejnosc').order('id')); },
+    async firmy() { return dane(await sb.from('firmy').select('*').order('nazwa')); },
+    async zajetosc(od, doo) { return dane(await sb.from('zajetosc').select('id,rampa_id,poczatek,koniec').lt('poczatek', doo.toISOString()).gt('koniec', od.toISOString())); },
+    async awizacje(od, doo) { return dane(await sb.from('awizacje').select('*').lt('poczatek', doo.toISOString()).gt('koniec', od.toISOString()).order('poczatek')); },
+    async moje() { return dane(await sb.from('awizacje').select('*').gte('koniec', new Date(Date.now() - 30 * 864e5).toISOString()).order('poczatek').limit(500)); },
+    async dodaj(rek) { return dane(await sb.from('awizacje').insert(rek).select().single()); },
+    async zmien(id, z) { return dane(await sb.from('awizacje').update(z).eq('id', id).select().single()); },
+    async odwolaj(id, powod) { return db.zmien(id, { status: 'odwolana', powod_odwolania: powod || null }); },
+    async konta() { return dane(await sb.from('profile').select('*').order('login')); },
+    async dodajKonto(k) {
+      const login = k.login.trim().toLowerCase(), email = loginNaEmail(login);
+      dane(await sb.from('konta_oczekujace').upsert({ email, login, imie: k.imie || null, rola: k.rola, firma_id: k.rola === 'przewoznik' ? +k.firma_id : null, wygasa: new Date(Date.now() + 864e5).toISOString() }));
+      const tmp = window.supabase.createClient(url, klucz, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'awizacja.tymczasowe' } });
+      const r = await tmp.auth.signUp({ email, password: k.haslo });
+      if (r.error) { await sb.from('konta_oczekujace').delete().eq('email', email); throw bladAuth(r.error, email); }
+      if (!r.data.session) throw new Error('Konto powstało, ale Supabase wymaga potwierdzenia e-mail, więc nie da się na nie zalogować. Wyłącz „Confirm email” (Authentication → Sign In / Providers → Email).');
+      await tmp.auth.signOut().catch(() => {});
+    },
+    async zmienKonto(id, z) { dane(await sb.from('profile').update(z).eq('id', id).select().single()); },
+    async ustawHaslo(login, h) {
+      const r = await sb.rpc('ustaw_haslo', { p_login: login, p_haslo: h });
+      if (r.error) {
+        if (/permission denied.*users/i.test(r.error.message || '')) throw new Error('Supabase nie pozwala zmieniać haseł z programu. Zablokuj stare konto i załóż nowy login.');
+        throw bladSb(r.error);
+      }
+    },
+    async zapiszFirme(f) {
+      const { id, utworzono, ...x } = f;
+      return dane(id ? await sb.from('firmy').update(x).eq('id', id).select().single() : await sb.from('firmy').insert(x).select().single());
+    },
+    async zapiszUstawienia(u) { const { id, ...x } = u; return dane(await sb.from('ustawienia').update(x).eq('id', 1).select().single()); },
+    async zapiszRampe(r) {
+      const { id, ...x } = r;
+      return dane(id ? await sb.from('rampy').update(x).eq('id', id).select().single() : await sb.from('rampy').insert(x).select().single());
+    },
+    nasluchuj(cb, stan) {
+      const ch = sb.channel('awizacja-zmiany')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'zajetosc' }, () => cb(false))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'awizacje' }, () => cb(false))
+        .subscribe(s => stan && stan(s === 'SUBSCRIBED' ? 'zywo' : (/ERROR|TIMED_OUT|CLOSED/.test(s) ? 'blad' : 'laczenie')));
+      return () => { sb.removeChannel(ch); };
+    }
+  };
+  return db;
+}
+
+/* =====================================================================
+   STAN I START
+   ===================================================================== */
+const S = {
+  db: null, ja: null, firma: null, ust: null, rampy: [], firmy: [], konta: [],
+  tydzien: null, dzienIdx: 0, rampa: null, widok: 'kafelki',
+  awz: [], zaj: [], moje: [], ed: null, drag: null, poDragu: 0,
+  fe: null, ke: null, kWynik: null, hasloDla: null, uste: null, nowaRampa: null,
+  pokazOdwolane: false, przewin: true, odsluch: null, bladPolaczenia: ''
+};
+const app = document.getElementById('app');
+
+function czytajKonfig() {
+  if (KONFIG.supabaseUrl && KONFIG.supabaseKlucz) return { url: KONFIG.supabaseUrl, klucz: KONFIG.supabaseKlucz, zPliku: true };
+  try { const c = JSON.parse(localStorage.getItem('awizacja.konfig') || 'null'); if (c && c.url && c.klucz) return c; } catch (e) {}
+  return {};
+}
+async function start() {
+  const cfg = czytajKonfig();
+  if (cfg.url && cfg.klucz) {
+    try { S.db = await utworzSupaDB(cfg.url, cfg.klucz); }
+    catch (e) { S.db = DemoDB(); S.bladPolaczenia = 'Nie udało się połączyć z Supabase: ' + e.message + ' Działa tryb demo.'; }
+  } else S.db = DemoDB();
+  let ja = null, msg = '';
+  try { ja = await S.db.sesja(); } catch (e) { msg = e.message; }
+  if (ja) await wejdz(ja); else pokazLogowanie(msg);
+}
+
+/* ---------- logowanie ---------- */
+function mozaika() {
+  const wz = '..o.x...x..o..o..x.oo....x..o.x..oo..x...o..x.o...xx..o..o.x...';
+  return [...wz].map(c => `<i class="${c === 'o' ? 'o' : c === 'x' ? 'x' : ''}"></i>`).join('');
+}
+function pokazLogowanie(msg) {
+  document.title = 'Awizacja · logowanie';
+  if (S.odsluch) { S.odsluch(); S.odsluch = null; }
+  const demo = S.db.tryb === 'demo';
+  const cfg = czytajKonfig();
+  app.innerHTML = `
+  <div class="logowanie">
+    <section class="log-lewa">
+      <div>
+        <div class="eyebrow">INTER-BOX · rampa</div>
+        <h1>Awizacja</h1>
+        <p class="lead">Rezerwacja okien czasowych na rampie. Wybierz wolny kafelek, wpisz auto i gotowe.</p>
+      </div>
+      <div class="mozaika" aria-hidden="true">${mozaika()}</div>
+    </section>
+    <section class="log-prawa">
+      <form class="log-form" id="fLog" autocomplete="on">
+        <h2>Zaloguj się</h2>
+        ${msg ? `<div class="komunikat">${esc(msg)}</div>` : ''}
+        ${S.bladPolaczenia ? `<div class="komunikat">${esc(S.bladPolaczenia)}</div>` : ''}
+        <label class="pole"><span>Login</span><input name="login" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+        <label class="pole"><span>Hasło lub PIN</span><input name="haslo" type="password" autocomplete="current-password" required></label>
+        <button class="btn akc pelny" type="submit" id="bZaloguj">Zaloguj</button>
+        <div class="tryb">
+          ${demo ? `
+            <p><b>Tryb demo</b> – dane zapisują się tylko w tej przeglądarce. Kliknij konto, żeby je wpisać:</p>
+            <table class="demo-konta">
+              <tr><td><button type="button" data-l="biuro" data-h="123456">biuro</button></td><td>PIN 123456</td><td>logistyka</td></tr>
+              <tr><td><button type="button" data-l="transdemo" data-h="demo1234">transdemo</button></td><td>demo1234</td><td>przewoźnik</td></tr>
+              <tr><td><button type="button" data-l="probna" data-h="demo1234">probna</button></td><td>demo1234</td><td>przewoźnik</td></tr>
+            </table>
+            <div class="linki"><button type="button" class="lnk" id="bPolacz">Połącz z Supabase…</button><button type="button" class="lnk" id="bReset">Wyczyść dane demo</button></div>
+            <div id="panelPolacz" hidden>
+              <label class="pole"><span>Project URL</span><input id="pUrl" placeholder="https://xxxxxxxx.supabase.co" autocomplete="off"></label>
+              <label class="pole"><span>Klucz anon / publishable</span><input id="pKlucz" autocomplete="off" spellcheck="false"></label>
+              <div id="pBlad"></div>
+              <button type="button" class="btn" id="bZapiszPolacz">Połącz</button>
+              <p class="drobne">Nigdy nie wpisuj tu klucza „service_role” ani „secret”.</p>
+            </div>` : `
+            <p>Baza: <b>${esc(S.db.host)}</b></p>
+            <div class="linki"><button type="button" class="lnk" id="bAdmin">Pierwsze uruchomienie – ustaw hasło administratora</button>
+            ${cfg.zPliku ? '' : '<button type="button" class="lnk" id="bRozlacz">Odłącz bazę (wróć do demo)</button>'}</div>
+            <div id="panelAdmin" hidden>
+              <p class="drobne" style="margin-top:0">Konto <b>admin</b> (logistyka) przygotował plik SQL. Ustaw mu hasło – potem zaloguj się loginem <b>admin</b>.</p>
+              <label class="pole"><span>Hasło (min. 8 znaków)</span><input id="aH1" type="password" autocomplete="new-password"></label>
+              <label class="pole"><span>Powtórz hasło</span><input id="aH2" type="password" autocomplete="new-password"></label>
+              <div id="aBlad"></div>
+              <button type="button" class="btn" id="bUtworzAdmina">Utwórz konto admin</button>
+            </div>`}
+        </div>
+      </form>
+    </section>
+  </div>`;
+  const f = $('#fLog');
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const b = $('#bZaloguj'); b.disabled = true; b.textContent = 'Loguję…';
+    try { const ja = await S.db.zaloguj(f.login.value, f.haslo.value); S.bladPolaczenia = ''; await wejdz(ja); }
+    catch (err) { pokazLogowanie(err.message); const nf = $('#fLog'); nf.login.value = f.login.value; nf.haslo.focus(); }
+  });
+  $$('.demo-konta button').forEach(b => b.onclick = () => { f.login.value = b.dataset.l; f.haslo.value = b.dataset.h; });
+  if (demo) {
+    $('#bPolacz').onclick = () => { $('#panelPolacz').hidden = !$('#panelPolacz').hidden; };
+    $('#bReset').onclick = () => { if (confirm('Wyczyścić dane demo i wygenerować przykładowe od nowa?')) { S.db.resetuj(); location.reload(); } };
+    $('#bZapiszPolacz').onclick = () => {
+      const url = $('#pUrl').value.trim().replace(/\/+$/, ''), klucz = $('#pKlucz').value.trim();
+      const zle = t => { $('#pBlad').innerHTML = `<div class="komunikat">${esc(t)}</div>`; };
+      if (!/^https:\/\/[^\s/]+$/.test(url)) return zle('Wpisz adres w postaci https://xxxx.supabase.co');
+      if (!klucz) return zle('Wpisz klucz anon / publishable.');
+      if (/^sb_secret_/i.test(klucz) || rolaKlucza(klucz) === 'service_role') return zle('To jest klucz tajny (service_role / secret). Użyj klucza anon / publishable.');
+      try { localStorage.setItem('awizacja.konfig', JSON.stringify({ url, klucz })); } catch (e) {}
+      location.reload();
+    };
+  } else {
+    $('#bAdmin').onclick = () => { $('#panelAdmin').hidden = !$('#panelAdmin').hidden; };
+    const r = $('#bRozlacz'); if (r) r.onclick = () => { try { localStorage.removeItem('awizacja.konfig'); } catch (e) {} location.reload(); };
+    $('#bUtworzAdmina').onclick = async () => {
+      const h1 = $('#aH1').value, h2 = $('#aH2').value;
+      const zle = t => { $('#aBlad').innerHTML = `<div class="komunikat">${esc(t)}</div>`; };
+      if (h1.length < 8) return zle('Hasło administratora musi mieć co najmniej 8 znaków.');
+      if (h1 !== h2) return zle('Hasła się różnią.');
+      try { const ja = await S.db.utworzAdmina(h1); await wejdz(ja); } catch (e) { zle(e.message); }
+    };
+  }
+  (f.login.value ? f.haslo : f.login).focus();
+}
+function rolaKlucza(k) {
+  try { const p = k.split('.'); if (p.length !== 3) return null; return JSON.parse(atob(p[1].replace(/-/g, '+').replace(/_/g, '/'))).role || null; } catch (e) { return null; }
+}
+
+/* ---------- po zalogowaniu ---------- */
+async function wczytajSlowniki() {
+  const [ust, rampy, firmy] = await Promise.all([S.db.ustawienia(), S.db.rampy(), S.db.firmy()]);
+  S.ust = { ...ust, dni_robocze: (ust.dni_robocze || []).map(Number), dni_wolne: (ust.dni_wolne || []).map(String) };
+  S.rampy = rampy; S.firmy = firmy;
+  S.konta = S.ja.rola === 'logistyka' ? await S.db.konta() : [];
+  const akt = rampy.filter(r => r.aktywna);
+  if (!akt.some(r => r.id === S.rampa)) S.rampa = (akt[0] || rampy[0] || {}).id ?? null;
+  S.firma = firmy.find(f => f.id === S.ja.firma_id) || null;
+}
+async function wejdz(ja) {
+  S.ja = ja;
+  try { await wczytajSlowniki(); }
+  catch (e) { await S.db.wyloguj().catch(() => {}); S.ja = null; return pokazLogowanie(e.message); }
+  S.tydzien = startowyTydzien(); S.dzienIdx = indeksDzisiaj(); S.widok = 'kafelki'; S.przewin = true;
+  S.ed = null; S.fe = null; S.ke = null; S.kWynik = null; S.uste = null;
+  document.title = 'Awizacja · ' + (S.ja.rola === 'logistyka' ? 'logistyka' : (S.firma ? S.firma.nazwa : 'przewoźnik'));
+  renderPowloka();
+  await odswiez();
+  if (S.odsluch) S.odsluch();
+  S.odsluch = S.db.nasluchuj(pelne => planujOdswiezenie(pelne), ustawStan);
+}
+async function wyloguj() {
+  if (S.odsluch) { S.odsluch(); S.odsluch = null; }
+  await S.db.wyloguj(); S.ja = null; pokazLogowanie();
+}
+const dniTygodnia = pn => [0, 1, 2, 3, 4, 5, 6].map(i => dodajDni(pn, i)).filter(d => S.ust.dni_robocze.includes(isoDow(d)));
+function startowyTydzien() {
+  const teraz = new Date(); const pn = poniedzialek(teraz); const dni = dniTygodnia(pn);
+  const ostatni = dni[dni.length - 1];
+  if (ostatni && naDzien(ostatni, S.ust.do_min) < teraz) return dodajDni(pn, 7);
+  return pn;
+}
+function indeksDzisiaj() { const dni = dniTygodnia(S.tydzien); const i = dni.findIndex(d => isoDzien(d) === isoDzien(new Date())); return i < 0 ? 0 : i; }
+const liczbaSlotow = () => Math.max(0, Math.floor((S.ust.do_min - S.ust.od_min) / S.ust.okno_min));
+const czyWaski = () => window.innerWidth <= 760;
+const wysokosc = () => czyWaski() ? 40 : 30;
+const nazwaFirmy = id => (S.firmy.find(f => f.id === id) || {}).nazwa || (S.ja.rola === 'logistyka' ? '—' : '');
+const loginKonta = uid => { const k = S.konta.find(k => k.id === uid); return k ? k.login : ''; };
+const rampa = id => S.rampy.find(r => r.id === id) || { kod: '?', nazwa: '?' };
+
+let odswTimer = null;
+function planujOdswiezenie(pelne) {
+  clearTimeout(odswTimer);
+  odswTimer = setTimeout(async () => {
+    if (!S.ja) return;
+    if (pelne) { try { await wczytajSlowniki(); } catch (e) {} }
+    odswiez(true);
+  }, 350);
+}
+async function wczytajTydzien() {
+  const od = S.tydzien, doo = dodajDni(S.tydzien, 7);
+  const [awz, zaj] = await Promise.all([S.db.awizacje(od, doo), S.ja.rola === 'przewoznik' ? S.db.zajetosc(od, doo) : Promise.resolve([])]);
+  S.awz = awz; S.zaj = zaj;
+}
+async function odswiez(cicho) {
+  if (!S.ja) return;
+  try {
+    await wczytajTydzien();
+    if (S.widok === 'moje') S.moje = await S.db.moje();
+    if (S.db.tryb === 'demo') ustawStan('demo');
+  } catch (e) {
+    if (!cicho) toast(e.message, true);
+    ustawStan('blad');
+    if (/Sesja wygasła|zablokowana/.test(e.message)) return pokazLogowanie(e.message);
+  }
+  if (!S.drag) renderWidok();
+}
+function ustawStan(s) {
+  S.stan = s; const el = $('#stan'); if (!el) return;
+  const t = { zywo: 'na żywo', demo: 'tryb demo', laczenie: 'łączenie…', blad: 'brak połączenia' }[s] || '';
+  const opis = { zywo: 'Zmiany innych osób pojawiają się od razu', demo: 'Dane tylko w tej przeglądarce; zmiany widać w innych kartach', laczenie: 'Łączenie z bazą', blad: 'Nie udało się połączyć – widok odświeża się co minutę' }[s] || '';
+  el.className = 'stan ' + s; el.title = opis; el.innerHTML = `<i></i>${t}`;
+}
+
+/* ---------- powłoka ---------- */
+function zakladki() {
+  return S.ja.rola === 'logistyka'
+    ? [['kafelki', 'Kafelki'], ['lista', 'Lista tygodnia'], ['firmy', 'Firmy i konta'], ['ustawienia', 'Ustawienia']]
+    : [['kafelki', 'Kafelki'], ['moje', 'Moje awizacje']];
+}
+function renderPowloka() {
+  const log = S.ja.rola === 'logistyka';
+  const akt = S.rampy.filter(r => r.aktywna);
+  app.innerHTML = `
+  <header class="top">
+    <div class="marka">Awizacja${S.db.tryb === 'demo' ? '<span class="tag">demo</span>' : ''}<small>INTER-BOX · ${akt.length === 1 ? esc(akt[0].nazwa) : akt.length + ' rampy'}</small></div>
+    <div class="kto">
+      <span><b>${esc(S.ja.imie || S.ja.login)}</b> · ${log ? 'logistyka' : esc(S.firma ? S.firma.nazwa : 'przewoźnik')}</span>
+      <span class="stan" id="stan"></span>
+      <button class="lnk" id="bHaslo">Zmień hasło</button>
+      <button class="lnk" id="bWyloguj">Wyloguj</button>
+    </div>
+  </header>
+  <nav class="zakladki" id="zakladki">${zakladki().map(([k, t]) => `<button data-w="${k}" class="${S.widok === k ? 'akt' : ''}">${t}</button>`).join('')}</nav>
+  <main id="widok"></main>
+  <div class="stopka">Awizacja ${WERSJA} · ${S.db.tryb === 'demo' ? 'tryb demo – dane tylko w tej przeglądarce' : 'baza ' + esc(S.db.host)}</div>
+  <div class="zaslona" id="zaslona"></div>
+  <aside class="szuflada" id="szuflada" aria-hidden="true"></aside>
+  <div class="toast" id="toast" hidden></div>`;
+  $('#bWyloguj').onclick = wyloguj;
+  $('#bHaslo').onclick = otworzZmianeHasla;
+  $('#zaslona').onclick = zamknijSzuflade;
+  $$('#zakladki button').forEach(b => b.onclick = async () => {
+    S.widok = b.dataset.w; $$('#zakladki button').forEach(x => x.classList.toggle('akt', x === b));
+    if (S.widok === 'kafelki') S.przewin = true;
+    if (S.widok === 'moje') { try { S.moje = await S.db.moje(); } catch (e) { toast(e.message, true); } }
+    if (S.widok === 'firmy') { try { S.konta = await S.db.konta(); S.firmy = await S.db.firmy(); } catch (e) { toast(e.message, true); } }
+    renderWidok();
+  });
+  ustawStan(S.stan || (S.db.tryb === 'demo' ? 'demo' : 'laczenie'));
+}
+function renderWidok() {
+  const w = $('#widok'); if (!w || !S.ja) return;
+  ({ kafelki: renderKafelki, lista: renderLista, moje: renderMoje, firmy: renderFirmy, ustawienia: renderUstawienia }[S.widok] || renderKafelki)();
+}
+
+let toastT;
+function toast(msg, blad) {
+  const t = $('#toast'); if (!t) return;
+  t.textContent = msg; t.className = 'toast' + (blad ? ' blad' : ''); t.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, blad ? 6500 : 3500);
+}
+
+/* =====================================================================
+   KAFELKI
+   ===================================================================== */
+const OPIS_BLOKADY = {
+  minione: () => 'To okno już minęło',
+  zapozno: () => `Za późno – rezerwacja najpóźniej ${S.ust.min_wyprzedzenie} min przed oknem`,
+  poza: () => `Za daleko – rezerwacja najwyżej ${S.ust.dni_naprzod} dni naprzód`,
+  swieto: () => 'Dzień wolny – rampa nie przyjmuje aut'
+};
+function blokadaSlotu(t, teraz) {
+  const u = S.ust, dz = dzienStart(t);
+  if (t < teraz) return 'minione';
+  if (S.ja.rola !== 'przewoznik') return null;
+  if (!u.dni_robocze.includes(isoDow(dz)) || u.dni_wolne.includes(isoDzien(dz))) return 'swieto';
+  if (t < new Date(teraz.getTime() + u.min_wyprzedzenie * 60000)) return 'zapozno';
+  if (dz > dodajDni(dzienStart(teraz), u.dni_naprzod)) return 'poza';
+  return null;
+}
+function bloki() {
+  if (S.ja.rola === 'logistyka')
+    return S.awz.filter(a => a.status === 'aktywna' && a.rampa_id === S.rampa).map(a => ({ id: a.id, p: new Date(a.poczatek), k: new Date(a.koniec), a }));
+  const moje = new Map(S.awz.filter(a => a.status === 'aktywna').map(a => [String(a.id), a]));
+  return S.zaj.filter(z => z.rampa_id === S.rampa).map(z => ({ id: z.id, p: new Date(z.poczatek), k: new Date(z.koniec), a: moje.get(String(z.id)) || null }));
+}
+function pasekTygodnia(dni, zLegenda) {
+  const akt = S.rampy.filter(r => r.aktywna);
+  return `
+  <div class="pasek">
+    <div class="tyg">Tydzień ${tydzienISO(S.tydzien)}<small>${zakresTxt(dni.length ? dni : [S.tydzien, dodajDni(S.tydzien, 6)])}</small></div>
+    <div class="nav"><button id="bPoprz" title="Poprzedni tydzień" aria-label="Poprzedni tydzień">←</button><button id="bDzis">Dziś</button><button id="bNast" title="Następny tydzień" aria-label="Następny tydzień">→</button></div>
+    ${akt.length > 1 ? `<div class="seg" id="segRampy">${akt.map(r => `<button data-r="${r.id}" class="${r.id === S.rampa ? 'akt' : ''}">${esc(r.kod)}</button>`).join('')}</div>` : ''}
+    ${zLegenda ? `<div class="legenda">
+      <span><i class="l-wolne"></i>wolne</span>
+      <span><i class="l-dostawa"></i>${S.ja.rola === 'przewoznik' ? 'moja dostawa' : 'dostawa'}</span>
+      <span><i class="l-odbior"></i>${S.ja.rola === 'przewoznik' ? 'mój odbiór' : 'odbiór'}</span>
+      ${S.ja.rola === 'przewoznik' ? '<span><i class="l-zaj"></i>zajęte</span>' : ''}
+      <span><i class="l-niedost"></i>niedostępne</span>
+    </div>` : ''}
+  </div>`;
+}
+function podepnijPasek() {
+  const p = $('#bPoprz'); if (!p) return;
+  p.onclick = () => zmienTydzien(-7);
+  $('#bNast').onclick = () => zmienTydzien(7);
+  $('#bDzis').onclick = () => { S.tydzien = startowyTydzien(); S.dzienIdx = indeksDzisiaj(); S.przewin = true; odswiez(); };
+  $$('#segRampy button').forEach(b => b.onclick = () => { S.rampa = +b.dataset.r; renderWidok(); });
+  $$('.dni-chipy button').forEach(b => b.onclick = () => { S.dzienIdx = +b.dataset.i; renderWidok(); });
+}
+async function zmienTydzien(n) { S.tydzien = dodajDni(S.tydzien, n); S.dzienIdx = 0; S.przewin = false; await odswiez(); }
+
+function renderKafelki() {
+  const w = $('#widok'), u = S.ust, teraz = new Date();
+  const dni = dniTygodnia(S.tydzien);
+  const waski = czyWaski();
+  if (S.dzienIdx >= dni.length) S.dzienIdx = 0;
+  const pokaz = waski ? dni.slice(S.dzienIdx, S.dzienIdx + 1) : dni;
+  const n = liczbaSlotow(), H = wysokosc(), bl = bloki();
+  const prz = S.ja.rola === 'przewoznik';
+  if (!dni.length || !n || S.rampa == null) {
+    w.innerHTML = pasekTygodnia(dni, false) + `<p class="pusto">${!S.rampa ? 'Brak aktywnej rampy – dodaj ją w Ustawieniach.' : 'Rampa nie ma ustawionych dni ani godzin pracy.'}</p>`;
+    return podepnijPasek();
+  }
+  let czasy = '';
+  for (let i = 0; i < n; i++) { const m = u.od_min + i * u.okno_min; czasy += `<div class="et-cz ${m % 60 === 0 ? 'pelna' : ''}" style="top:${i * H}px">${hhmm(m)}</div>`; }
+  w.innerHTML = `
+    ${pasekTygodnia(dni, true)}
+    ${waski ? `<div class="dni-chipy">${dni.map((d, i) => `<button data-i="${i}" class="${i === S.dzienIdx ? 'akt' : ''} ${isoDzien(d) === isoDzien(teraz) ? 'dzis' : ''}">${DNI[isoDow(d) - 1]}<b>${d.getDate()}</b></button>`).join('')}</div>` : ''}
+    <p class="podpowiedz">${prz
+      ? `Kliknij wolny kafelek${waski ? '' : ' (albo przeciągnij po kilku)'}, żeby zarezerwować okno. Rezerwacja do ${u.dni_naprzod} dni naprzód, najpóźniej ${u.min_wyprzedzenie} min przed oknem; jedna rezerwacja to najwyżej ${fmtDl(u.max_okien * u.okno_min)}.`
+      : `Kliknij wolny kafelek${waski ? '' : ' (albo przeciągnij po kilku)'}, żeby wpisać awizację za przewoźnika. Kliknij rezerwację, żeby ją zmienić albo odwołać.`}</p>
+    <div class="siatka" style="--n:${pokaz.length};--wiersze:${n};--h:${H}px">
+      <div class="kol czasy"><div class="nag"></div><div class="cialo">${czasy}</div></div>
+      ${pokaz.map(d => kolumnaDnia(d, bl, teraz, n, H)).join('')}
+    </div>`;
+  podepnijPasek();
+  const s = $('.siatka', w);
+  s.addEventListener('pointerdown', e => {
+    const k = e.target.closest('.kaf.wolne');
+    if (!k || e.pointerType !== 'mouse' || e.button !== 0) return;
+    e.preventDefault();
+    S.drag = { d: k.dataset.d, i0: +k.dataset.i, i1: +k.dataset.i };
+    pokazWybor(S.drag.d, S.drag.i0, S.drag.i1);
+  });
+  s.addEventListener('click', e => {
+    const k = e.target.closest('.kaf.wolne');
+    if (k) { if (Date.now() - S.poDragu < 500) return; otworzNowa(k.dataset.d, +k.dataset.i, 1); return; }
+    const r = e.target.closest('.rez[data-id]');
+    if (r) otworzIstniejaca(r.dataset.id);
+  });
+  s.addEventListener('keydown', e => {
+    const r = e.target.closest('.rez[data-id]');
+    if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); otworzIstniejaca(r.dataset.id); }
+  });
+  if (S.ed && S.ed.tryb === 'nowa') pokazWybor(S.ed.dzien, idxSlotu(S.ed.start), idxSlotu(S.ed.start) + S.ed.dl - 1);
+  if (S.przewin) {
+    S.przewin = false;
+    const l = $('.teraz', w) || $('.kaf.wolne', w);
+    if (l) { const y = l.getBoundingClientRect().top + window.scrollY - 220; if (y > 0) window.scrollTo({ top: y }); }
+  }
+}
+function kolumnaDnia(d, bl, teraz, n, H) {
+  const u = S.ust, iso = isoDzien(d), log = S.ja.rola === 'logistyka';
+  const swieto = u.dni_wolne.includes(iso);
+  const dz = bl.filter(b => isoDzien(b.p) === iso);
+  const zajete = new Set();
+  for (const b of dz) {
+    const a0 = Math.floor((minutyDnia(b.p) - u.od_min) / u.okno_min);
+    const a1 = Math.ceil((minutyDnia(b.p) + (b.k - b.p) / 60000 - u.od_min) / u.okno_min);
+    for (let i = Math.max(0, a0); i < Math.min(n, a1); i++) zajete.add(i);
+  }
+  let kaf = '';
+  for (let i = 0; i < n; i++) {
+    const m = u.od_min + i * u.okno_min, t = naDzien(d, m);
+    let kl = 'wolne', tyt = `${hhmm(m)}–${hhmm(m + u.okno_min)} · wolne`;
+    if (zajete.has(i)) { kl = 'pod'; tyt = ''; }
+    else { const bz = blokadaSlotu(t, teraz); if (bz) { kl = bz; tyt = OPIS_BLOKADY[bz](); } }
+    kaf += `<button type="button" class="kaf ${kl}" data-d="${iso}" data-i="${i}" data-g="${hhmm(m)}" style="top:${i * H}px"${kl !== 'wolne' ? ' tabindex="-1" aria-disabled="true"' : ''} title="${esc(tyt)}" aria-label="${esc(fmtKrotko(d) + ' ' + tyt)}"></button>`;
+  }
+  let rez = '';
+  for (const b of dz) {
+    const top = (minutyDnia(b.p) - u.od_min) / u.okno_min * H;
+    const h = (b.k - b.p) / 60000 / u.okno_min * H - 3;
+    const t0 = Math.max(0, top), h2 = Math.min(n * H - t0, h - (t0 - top));
+    if (h2 <= 0) continue;
+    const krotka = h2 < 2 * H - 3;
+    if (b.a) {
+      const a = b.a, f = log ? nazwaFirmy(a.firma_id) : '';
+      const opis = `${fmtGodz(b.p)}–${fmtGodz(b.k)} · ${nazwaRodzaju(a.rodzaj)} · ${a.nr_rej}${f ? ' · ' + f : ''}${a.kierowca ? ' · ' + a.kierowca : ''}${a.palety != null ? ' · ' + a.palety + ' pal.' : ''}${a.nr_dokumentu ? ' · ' + a.nr_dokumentu : ''}${a.uwagi ? ' · ' + a.uwagi : ''}`;
+      rez += `<div class="rez ${a.rodzaj}${krotka ? ' krotka' : ''}" data-id="${esc(a.id)}" role="button" tabindex="0" style="top:${t0}px;height:${h2}px" title="${esc(opis)}" aria-label="${esc(opis)}">
+        <div class="r1"><b>${esc(a.nr_rej)}</b>${f ? ' · ' + esc(f) : (krotka ? ' · ' + fmtGodz(b.p) : '')}</div>
+        ${krotka ? '' : `<div class="r2">${fmtGodz(b.p)}–${fmtGodz(b.k)} · ${nazwaRodzaju(a.rodzaj)}${a.palety != null ? ' · ' + a.palety + ' pal.' : ''}</div>`}
+      </div>`;
+    } else {
+      rez += `<div class="rez obce" style="top:${t0}px;height:${h2}px" title="Zajęte ${fmtGodz(b.p)}–${fmtGodz(b.k)}">zajęte</div>`;
+    }
+  }
+  let linia = '';
+  if (isoDzien(teraz) === iso) {
+    const mm = minutyDnia(teraz) + teraz.getSeconds() / 60;
+    if (mm >= u.od_min && mm <= u.od_min + n * u.okno_min) linia = `<div class="teraz" style="top:${(mm - u.od_min) / u.okno_min * H}px"></div>`;
+  }
+  const ile = dz.length, dzis = iso === isoDzien(teraz);
+  return `<div class="kol${swieto ? ' swieto' : ''}" data-d="${iso}">
+    <div class="nag${dzis ? ' dzis' : ''}"><span>${DNI_PELNE[isoDow(d) - 1]}${swieto ? ' · wolne' : ''}${dzis ? ' · dziś' : ''}</span><b>${d.getDate()}.${pad(d.getMonth() + 1)}</b><small>${ile ? ile + ' ' + odmianaAut(ile) : 'brak aut'}</small></div>
+    <div class="cialo">${kaf}${rez}${linia}</div>
+  </div>`;
+}
+const idxSlotu = m => Math.round((m - S.ust.od_min) / S.ust.okno_min);
+function czyscWybor() { $$('.kaf.wyb').forEach(k => { k.classList.remove('wyb'); k.textContent = ''; }); }
+function pokazWybor(d, i0, i1) {
+  czyscWybor();
+  const a = Math.min(i0, i1), b = Math.max(i0, i1);
+  for (let i = a; i <= b; i++) { const k = $(`.kaf[data-d="${d}"][data-i="${i}"]`); if (k) k.classList.add('wyb'); }
+  const pierwszy = $(`.kaf[data-d="${d}"][data-i="${a}"]`);
+  if (pierwszy) pierwszy.textContent = `${hhmm(S.ust.od_min + a * S.ust.okno_min)}–${hhmm(S.ust.od_min + (b + 1) * S.ust.okno_min)}`;
+}
+function ograniczZakres(d, i0, i) {
+  const maxK = S.ja.rola === 'przewoznik' ? S.ust.max_okien : 16;
+  const krok = i >= i0 ? 1 : -1; let j = i0;
+  while (j !== i) {
+    const nx = j + krok, el = $(`.kaf[data-d="${d}"][data-i="${nx}"]`);
+    if (!el || !el.classList.contains('wolne') || Math.abs(nx - i0) + 1 > maxK) break;
+    j = nx;
+  }
+  return j;
+}
+document.addEventListener('pointermove', e => {
+  if (!S.drag) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const k = el && el.closest && el.closest('.kaf');
+  if (!k || k.dataset.d !== S.drag.d) return;
+  const j = ograniczZakres(S.drag.d, S.drag.i0, +k.dataset.i);
+  if (j !== S.drag.i1) { S.drag.i1 = j; pokazWybor(S.drag.d, S.drag.i0, j); }
+});
+document.addEventListener('pointerup', () => {
+  if (!S.drag) return;
+  const d = S.drag; S.drag = null; S.poDragu = Date.now();
+  const a = Math.min(d.i0, d.i1), b = Math.max(d.i0, d.i1);
+  otworzNowa(d.d, a, b - a + 1);
+});
+
+/* =====================================================================
+   SZUFLADA: NOWA / ISTNIEJĄCA AWIZACJA
+   ===================================================================== */
+function otworzSzuflade(html) {
+  const sz = $('#szuflada'); sz.innerHTML = html;
+  sz.classList.add('otw'); sz.setAttribute('aria-hidden', 'false'); $('#zaslona').classList.add('otw');
+  const z = $('.zamknij', sz); if (z) z.onclick = zamknijSzuflade;
+}
+function zamknijSzuflade() {
+  S.ed = null;
+  const sz = $('#szuflada'); if (!sz) return;
+  sz.classList.remove('otw'); sz.setAttribute('aria-hidden', 'true'); $('#zaslona').classList.remove('otw');
+  czyscWybor();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#szuflada.otw')) zamknijSzuflade(); });
+
+function pustePola() { return { rodzaj: 'dostawa', firma_id: '', nr_rej: '', kierowca: '', telefon: '', palety: '', nr_dokumentu: '', uwagi: '', powod: '' }; }
+function otworzNowa(dzienIso, i0, ile) {
+  const e = { tryb: 'nowa', a: null, rampa: S.rampa, dzien: dzienIso, start: S.ust.od_min + i0 * S.ust.okno_min, dl: ile, pola: pustePola(), bloki: [], blad: '', odwolywanie: false, zapis: false };
+  if (S.ed && S.ed.tryb === 'nowa') { const p = S.ed.pola; Object.assign(e.pola, { rodzaj: p.rodzaj, firma_id: p.firma_id, nr_rej: p.nr_rej, kierowca: p.kierowca, telefon: p.telefon, palety: p.palety, nr_dokumentu: p.nr_dokumentu, uwagi: p.uwagi }); }
+  S.ed = e; e.bloki = blokiZTygodnia(e);
+  dopasujDl(e); renderSzAw(true); odswiezBlokiFormularza(e);
+}
+function otworzIstniejaca(id) {
+  const a = [...S.awz, ...S.moje].find(x => String(x.id) === String(id)); if (!a) return;
+  const p = new Date(a.poczatek), k = new Date(a.koniec);
+  const e = {
+    tryb: 'edycja', a, rampa: a.rampa_id, dzien: isoDzien(p), start: minutyDnia(p), dl: Math.max(1, Math.round((k - p) / 60000 / S.ust.okno_min)),
+    pola: { rodzaj: a.rodzaj, firma_id: a.firma_id ?? '', nr_rej: a.nr_rej || '', kierowca: a.kierowca || '', telefon: a.telefon || '', palety: a.palety ?? '', nr_dokumentu: a.nr_dokumentu || '', uwagi: a.uwagi || '', powod: '' },
+    bloki: [], blad: '', odwolywanie: false, zapis: false
+  };
+  S.ed = e; e.bloki = blokiZTygodnia(e);
+  renderSzAw(true); odswiezBlokiFormularza(e);
+}
+function blokiZTygodnia(e) {
+  const dz = zIso(e.dzien); if (dz < S.tydzien || dz >= dodajDni(S.tydzien, 7)) return [];
+  const lista = S.ja.rola === 'logistyka' ? S.awz.filter(a => a.status === 'aktywna') : S.zaj;
+  return lista.filter(x => x.rampa_id === e.rampa && String(x.id) !== String(e.a ? e.a.id : '') && isoDzien(new Date(x.poczatek)) === e.dzien)
+    .map(x => ({ p: new Date(x.poczatek), k: new Date(x.koniec) }));
+}
+async function odswiezBlokiFormularza(e) {
+  try {
+    const dz = zIso(e.dzien), doo = dodajDni(dz, 1);
+    const lista = S.ja.rola === 'logistyka' ? (await S.db.awizacje(dz, doo)).filter(a => a.status === 'aktywna') : await S.db.zajetosc(dz, doo);
+    if (S.ed !== e) return;
+    e.bloki = lista.filter(x => x.rampa_id === e.rampa && String(x.id) !== String(e.a ? e.a.id : '')).map(x => ({ p: new Date(x.poczatek), k: new Date(x.koniec) }));
+    dopasujDl(e); renderSzAw();
+  } catch (err) { /* zostaje to, co było */ }
+}
+function oryginalObejmuje(e, t, t2) {
+  const a = e.a; if (!a || a.status !== 'aktywna' || a.rampa_id !== e.rampa) return false;
+  return new Date(a.poczatek) <= t && new Date(a.koniec) >= t2;
+}
+function slotDostepny(e, i) {
+  if (i < 0 || i >= liczbaSlotow()) return false;
+  const u = S.ust, dz = zIso(e.dzien), m = u.od_min + i * u.okno_min;
+  const t = naDzien(dz, m), t2 = naDzien(dz, m + u.okno_min);
+  if (e.bloki.some(b => b.p < t2 && b.k > t)) return false;
+  if (oryginalObejmuje(e, t, t2)) return true;
+  return !blokadaSlotu(t, new Date());
+}
+function maxDlugosc(e, i) { const lim = S.ja.rola === 'przewoznik' ? S.ust.max_okien : 16; let c = 0; while (c < lim && slotDostepny(e, i + c)) c++; return c; }
+function dopasujDl(e) { const mx = maxDlugosc(e, idxSlotu(e.start)); if (mx > 0 && e.dl > mx) e.dl = mx; }
+function tylkoOdczyt(e) {
+  if (e.tryb === 'nowa') return '';
+  const a = e.a;
+  if (a.status === 'odwolana') return S.ja.rola === 'logistyka' ? 'Awizacja jest odwołana. Możesz ją przywrócić, jeśli okno jest wolne.' : 'Awizacja jest odwołana. Żeby przyjechać, zarezerwuj nowe okno.';
+  if (S.ja.rola === 'przewoznik' && new Date(a.poczatek) < new Date(Date.now() + S.ust.odwolanie_min * 60000))
+    return `Zmiany i odwołanie są możliwe najpóźniej ${S.ust.odwolanie_min} min przed oknem. W razie potrzeby zadzwoń do logistyki.`;
+  return '';
+}
+
+function renderSzAw(fokus) {
+  const e = S.ed; if (!e) return;
+  const u = S.ust, log = S.ja.rola === 'logistyka', a = e.a;
+  const dz = zIso(e.dzien), n = liczbaSlotow(), si = idxSlotu(e.start);
+  const p = naDzien(dz, e.start), k = naDzien(dz, e.start + e.dl * u.okno_min);
+  const ro = tylkoOdczyt(e), odw = a && a.status === 'odwolana';
+  const zablokuj = !!ro;
+  const mx = maxDlugosc(e, si);
+  const okCzas = mx >= e.dl;
+  const dzienRoboczy = u.dni_robocze.includes(isoDow(dz)) && (log || !u.dni_wolne.includes(e.dzien));
+  const opcje = [];
+  for (let i = 0; i < n; i++) {
+    const m = u.od_min + i * u.okno_min, ok = maxDlugosc(e, i) > 0;
+    opcje.push(`<option value="${m}"${m === e.start ? ' selected' : ''}${ok || m === e.start ? '' : ' disabled'}>${hhmm(m)}${ok ? '' : ' – niedostępne'}</option>`);
+  }
+  const limit = log ? 8 : u.max_okien;
+  const dl = [];
+  for (let kk = 1; kk <= limit; kk++) dl.push(`<button type="button" data-dl="${kk}" class="${kk === e.dl ? 'akt' : ''}"${(kk > mx && kk !== e.dl) || zablokuj ? ' disabled' : ''}>${fmtDl(kk * u.okno_min)}</button>`);
+  const dzis = dzienStart(new Date());
+  const minD = log ? (a ? '' : isoDzien(dzis)) : isoDzien(dzis);
+  const maxD = log ? '' : isoDzien(dodajDni(dzis, u.dni_naprzod));
+  const f = e.pola, dis = zablokuj ? ' disabled' : '';
+  let ostrzezenie = '';
+  if (!zablokuj && !okCzas) ostrzezenie = !dzienRoboczy ? 'Ten dzień jest wolny – rampa nie przyjmuje aut. Wybierz inny dzień.' : (mx === 0 ? 'Wybrana godzina jest zajęta albo niedostępna. Wybierz inną.' : `Od tej godziny wolne jest tylko ${fmtDl(mx * u.okno_min)}.`);
+  const tytul = e.tryb === 'nowa' ? 'Nowa awizacja' : (odw ? 'Awizacja odwołana' : 'Awizacja');
+  const meta = a ? `<div class="meta">
+      <div>Utworzono: ${fmtKiedy(a.utworzono)}${log && loginKonta(a.utworzyl) ? ' · ' + esc(loginKonta(a.utworzyl)) : ''}</div>
+      ${a.zmieniono ? `<div>Ostatnia zmiana: ${fmtKiedy(a.zmieniono)}${log && loginKonta(a.zmienil) ? ' · ' + esc(loginKonta(a.zmienil)) : ''}</div>` : ''}
+      ${odw ? `<div>Odwołano: ${fmtKiedy(a.odwolano)}${log && loginKonta(a.odwolal) ? ' · ' + esc(loginKonta(a.odwolal)) : ''}${a.powod_odwolania ? ' · powód: ' + esc(a.powod_odwolania) : ''}</div>` : ''}
+      ${log ? `<div>Firma: ${esc(nazwaFirmy(a.firma_id))}</div>` : ''}
+    </div>` : '';
+  const html = `
+    <div class="sz-nag">
+      <div class="eyebrow">${tytul} · ${esc(rampa(e.rampa).nazwa)}</div>
+      <div class="sz-czas">${fmtGodz(p)}–${fmtGodz(k)}</div>
+      <div class="sz-dzien">${fmtDlugo(dz)} ${dz.getFullYear()} · ${fmtDl(e.dl * u.okno_min)}</div>
+      <button type="button" class="zamknij" aria-label="Zamknij">×</button>
+    </div>
+    <form class="sz-tresc" id="fAw" novalidate>
+      ${e.blad ? `<div class="komunikat">${esc(e.blad)}</div>` : ''}
+      ${ro ? `<div class="komunikat info">${esc(ro)}</div>` : ''}
+      ${ostrzezenie ? `<div class="komunikat">${esc(ostrzezenie)}</div>` : ''}
+      <div class="rzad2">
+        <label class="pole"><span>Dzień</span><input type="date" name="dzien" value="${e.dzien}"${minD ? ` min="${minD}"` : ''}${maxD ? ` max="${maxD}"` : ''}${dis}></label>
+        <label class="pole"><span>Początek</span><select name="start"${dis}>${opcje.join('')}</select></label>
+      </div>
+      <div class="pole"><span class="et">Czas trwania</span><div class="seg kafle" id="segDl">${dl.join('')}</div></div>
+      <div class="pole"><span class="et">Rodzaj</span><div class="seg" id="segRodzaj">
+        <button type="button" data-r="dostawa" class="${f.rodzaj === 'dostawa' ? 'akt' : ''}"${dis}>Dostawa do nas</button>
+        <button type="button" data-r="odbior" class="${f.rodzaj === 'odbior' ? 'akt' : ''}"${dis}>Odbiór od nas</button>
+      </div></div>
+      ${log ? `<label class="pole"><span>Firma (przewoźnik) *</span><select name="firma_id"${dis}><option value="">— wybierz —</option>${S.firmy.filter(x => x.aktywna || String(x.id) === String(f.firma_id)).map(x => `<option value="${x.id}"${String(x.id) === String(f.firma_id) ? ' selected' : ''}>${esc(x.nazwa)}</option>`).join('')}</select></label>` : ''}
+      <div class="rzad2">
+        <label class="pole"><span>Nr rejestracyjny *</span><input name="nr_rej" value="${esc(f.nr_rej)}" autocomplete="off" autocapitalize="characters" placeholder="np. WOS 12345" style="text-transform:uppercase"${dis}></label>
+        <label class="pole"><span>Liczba palet</span><input name="palety" type="number" min="0" max="200" step="1" inputmode="numeric" value="${esc(f.palety)}"${dis}></label>
+      </div>
+      <div class="rzad2">
+        <label class="pole"><span>Kierowca</span><input name="kierowca" value="${esc(f.kierowca)}" autocomplete="off"${dis}></label>
+        <label class="pole"><span>Telefon kierowcy</span><input name="telefon" type="tel" value="${esc(f.telefon)}" autocomplete="off"${dis}></label>
+      </div>
+      <label class="pole"><span>Nr zamówienia / dokumentu</span><input name="nr_dokumentu" value="${esc(f.nr_dokumentu)}" autocomplete="off"${dis}></label>
+      <label class="pole"><span>Uwagi</span><textarea name="uwagi" rows="2"${dis}>${esc(f.uwagi)}</textarea></label>
+      ${e.odwolywanie ? `<div class="odwolanie">
+        <label class="pole"><span>Powód odwołania (nieobowiązkowy)</span><textarea name="powod" rows="2">${esc(f.powod)}</textarea></label>
+        <div class="akcje"><button type="button" class="btn zly" id="bPotwOdw"${e.zapis ? ' disabled' : ''}>Tak, odwołaj</button><button type="button" class="btn jasny" id="bNieOdw">Nie odwołuj</button></div>
+      </div>` : ''}
+      ${meta}
+    </form>
+    <div class="sz-stopka">
+      ${e.tryb === 'nowa' ? `<button type="submit" form="fAw" class="btn akc"${!okCzas || e.zapis ? ' disabled' : ''}>${e.zapis ? 'Zapisuję…' : 'Zarezerwuj'}</button><button type="button" class="btn jasny" id="bAnuluj">Anuluj</button>`
+      : ro ? `${odw && log ? `<button type="button" class="btn akc" id="bPrzywroc"${e.zapis ? ' disabled' : ''}>Przywróć awizację</button>` : ''}<button type="button" class="btn jasny" id="bAnuluj">Zamknij</button>`
+      : `<button type="submit" form="fAw" class="btn akc"${!okCzas || e.zapis ? ' disabled' : ''}>${e.zapis ? 'Zapisuję…' : 'Zapisz zmiany'}</button>${e.odwolywanie ? '' : '<button type="button" class="btn zly" id="bOdwolaj">Odwołaj awizację</button>'}<button type="button" class="btn jasny" id="bAnuluj">Zamknij</button>`}
+    </div>`;
+  const sz = $('#szuflada');
+  const scroll = $('.sz-tresc', sz) ? $('.sz-tresc', sz).scrollTop : 0;
+  otworzSzuflade(html);
+  $('.sz-tresc', sz).scrollTop = scroll;
+  const form = $('#fAw');
+  form.addEventListener('input', ev => { const t = ev.target; if (t.name && t.name in e.pola) e.pola[t.name] = t.value; });
+  form.addEventListener('change', ev => {
+    const t = ev.target;
+    if (t.name === 'dzien') { if (!t.value) return; e.dzien = t.value; e.blad = ''; e.bloki = blokiZTygodnia(e); dopasujDl(e); renderSzAw(); odswiezBlokiFormularza(e); }
+    else if (t.name === 'start') { e.start = +t.value; e.blad = ''; dopasujDl(e); renderSzAw(); }
+  });
+  form.addEventListener('submit', ev => { ev.preventDefault(); zapiszAwizacje(); });
+  $$('#segDl button').forEach(b => b.onclick = () => { e.dl = +b.dataset.dl; renderSzAw(); });
+  $$('#segRodzaj button').forEach(b => b.onclick = () => { e.pola.rodzaj = b.dataset.r; renderSzAw(); });
+  const on = (id, fn) => { const el = $('#' + id); if (el) el.onclick = fn; };
+  on('bAnuluj', zamknijSzuflade);
+  on('bOdwolaj', () => { e.odwolywanie = true; renderSzAw(); const t = $('textarea[name=powod]'); if (t) { t.focus(); t.scrollIntoView({ block: 'center' }); } });
+  on('bNieOdw', () => { e.odwolywanie = false; renderSzAw(); });
+  on('bPotwOdw', odwolajAwizacje);
+  on('bPrzywroc', przywrocAwizacje);
+  if (e.tryb === 'nowa') { if (S.drag == null) pokazWybor(e.dzien, si, si + e.dl - 1); }
+  if (fokus && !zablokuj) { const pole = $('input[name=nr_rej]'); if (pole && !czyWaski()) setTimeout(() => pole.focus(), 60); }
+}
+async function zapiszAwizacje() {
+  const e = S.ed; if (!e || e.zapis) return;
+  const u = S.ust, f = e.pola, log = S.ja.rola === 'logistyka';
+  e.blad = '';
+  const nr = String(f.nr_rej || '').trim().replace(/\s+/g, ' ').toUpperCase();
+  if (!nr) { e.blad = 'Podaj numer rejestracyjny auta.'; return renderSzAw(); }
+  if (log && !f.firma_id) { e.blad = 'Wybierz firmę przewoźnika.'; return renderSzAw(); }
+  const pal = String(f.palety ?? '').trim();
+  if (pal !== '' && !(/^\d+$/.test(pal) && +pal <= 200)) { e.blad = 'Liczba palet: wpisz liczbę od 0 do 200.'; return renderSzAw(); }
+  const dz = zIso(e.dzien), p = naDzien(dz, e.start), k = naDzien(dz, e.start + e.dl * u.okno_min);
+  const trim = v => { v = String(v ?? '').trim(); return v === '' ? null : v; };
+  const rek = {
+    rampa_id: e.rampa, poczatek: p.toISOString(), koniec: k.toISOString(), rodzaj: f.rodzaj,
+    firma_id: log ? +f.firma_id : S.ja.firma_id, nr_rej: nr, kierowca: trim(f.kierowca), telefon: trim(f.telefon),
+    palety: pal === '' ? null : +pal, nr_dokumentu: trim(f.nr_dokumentu), uwagi: trim(f.uwagi)
+  };
+  const czasZm = e.tryb === 'nowa' || +new Date(e.a.poczatek) !== +p || +new Date(e.a.koniec) !== +k;
+  if (czasZm) {
+    const b = walidujCzas(rek, S.ja.rola, u, S.rampy); if (b) { e.blad = b; return renderSzAw(); }
+    if (maxDlugosc(e, idxSlotu(e.start)) < e.dl) { e.blad = 'Wybrane okno nie jest wolne.'; return renderSzAw(); }
+  }
+  e.zapis = true; renderSzAw();
+  try {
+    if (e.tryb === 'nowa') await S.db.dodaj(rek); else await S.db.zmien(e.a.id, rek);
+    zamknijSzuflade();
+    toast(`${e.tryb === 'nowa' ? 'Zarezerwowano' : 'Zapisano'}: ${fmtKrotko(p)}, ${fmtGodz(p)}–${fmtGodz(k)} · ${nr}`);
+    await odswiez(true);
+  } catch (err) {
+    e.zapis = false; e.blad = err.message;
+    if (err.code === '23P01') { await odswiez(true); await odswiezBlokiFormularza(e); }
+    if (S.ed === e) renderSzAw();
+  }
+}
+async function odwolajAwizacje() {
+  const e = S.ed; if (!e || e.zapis) return;
+  e.zapis = true; renderSzAw();
+  try {
+    await S.db.odwolaj(e.a.id, String(e.pola.powod || '').trim());
+    zamknijSzuflade(); toast('Awizacja odwołana – okno jest znowu wolne.');
+    await odswiez(true);
+  } catch (err) { e.zapis = false; e.blad = err.message; if (S.ed === e) renderSzAw(); }
+}
+async function przywrocAwizacje() {
+  const e = S.ed; if (!e || e.zapis) return;
+  e.zapis = true; renderSzAw();
+  try {
+    await S.db.zmien(e.a.id, { status: 'aktywna' });
+    zamknijSzuflade(); toast('Awizacja przywrócona.');
+    await odswiez(true);
+  } catch (err) { e.zapis = false; e.blad = err.message; if (S.ed === e) renderSzAw(); }
+}
+
+/* ---------- zmiana własnego hasła ---------- */
+function otworzZmianeHasla() {
+  S.ed = null; czyscWybor();
+  otworzSzuflade(`
+    <div class="sz-nag"><div class="eyebrow">Moje konto · ${esc(S.ja.login)}</div><div class="sz-czas">Zmiana hasła</div><button type="button" class="zamknij" aria-label="Zamknij">×</button></div>
+    <form class="sz-tresc" id="fHaslo">
+      <div id="hBlad"></div>
+      <label class="pole"><span>Nowe hasło lub PIN (min. 6 znaków)</span><input type="password" name="h1" autocomplete="new-password"></label>
+      <label class="pole"><span>Powtórz</span><input type="password" name="h2" autocomplete="new-password"></label>
+      <p class="drobne">Hasło zmieni się od razu. Przy następnym logowaniu użyj nowego.</p>
+    </form>
+    <div class="sz-stopka"><button type="submit" form="fHaslo" class="btn akc">Zmień hasło</button><button type="button" class="btn jasny" id="bAnulujH">Anuluj</button></div>`);
+  $('#bAnulujH').onclick = zamknijSzuflade;
+  const f = $('#fHaslo'); f.h1.focus();
+  f.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const zle = t => { $('#hBlad').innerHTML = `<div class="komunikat">${esc(t)}</div>`; };
+    if (f.h1.value.length < 6) return zle('Hasło musi mieć co najmniej 6 znaków.');
+    if (f.h1.value !== f.h2.value) return zle('Hasła się różnią.');
+    try { await S.db.zmienMojeHaslo(f.h1.value); zamknijSzuflade(); toast('Hasło zmienione.'); } catch (e) { zle(e.message); }
+  });
+}
+
+/* =====================================================================
+   LISTA TYGODNIA (logistyka) i MOJE AWIZACJE (przewoźnik)
+   ===================================================================== */
+function wierszAwizacji(a, zFirma) {
+  const p = new Date(a.poczatek), k = new Date(a.koniec), odw = a.status === 'odwolana';
+  return `<tr class="klik${odw ? ' odw' : ''}" data-id="${esc(a.id)}">
+    <td class="nw">${fmtKrotko(p)}</td><td class="nw">${fmtGodz(p)}–${fmtGodz(k)}</td>
+    ${S.rampy.filter(r => r.aktywna).length > 1 ? `<td>${esc(rampa(a.rampa_id).kod)}</td>` : ''}
+    <td class="nw"><span class="kropka ${a.rodzaj}"></span>${nazwaRodzaju(a.rodzaj)}</td>
+    ${zFirma ? `<td>${esc(nazwaFirmy(a.firma_id))}</td>` : ''}
+    <td class="nw"><b>${esc(a.nr_rej)}</b></td><td>${esc(a.kierowca || '')}</td><td class="nw">${esc(a.telefon || '')}</td>
+    <td class="num">${a.palety ?? ''}</td><td>${esc(a.nr_dokumentu || '')}</td><td>${esc(a.uwagi || '')}</td>
+    <td class="st nw">${odw ? 'odwołana' : (k < new Date() ? 'minęła' : 'aktywna')}</td>
+  </tr>`;
+}
+function naglowekTabeli(zFirma) {
+  return `<tr><th>Dzień</th><th>Godz.</th>${S.rampy.filter(r => r.aktywna).length > 1 ? '<th>Rampa</th>' : ''}<th>Rodzaj</th>${zFirma ? '<th>Firma</th>' : ''}<th>Nr rej.</th><th>Kierowca</th><th>Telefon</th><th class="num">Palety</th><th>Dokument</th><th>Uwagi</th><th>Status</th></tr>`;
+}
+function renderLista() {
+  const w = $('#widok'), dni = dniTygodnia(S.tydzien);
+  const lista = S.awz.filter(a => S.pokazOdwolane || a.status === 'aktywna').sort((x, y) => new Date(x.poczatek) - new Date(y.poczatek));
+  const kol = 11 + (S.rampy.filter(r => r.aktywna).length > 1 ? 1 : 0);
+  let wiersze = '', ost = '';
+  for (const a of lista) {
+    const d = isoDzien(new Date(a.poczatek));
+    if (d !== ost) {
+      ost = d; const ile = lista.filter(x => x.status === 'aktywna' && isoDzien(new Date(x.poczatek)) === d).length;
+      wiersze += `<tr class="dzien"><td colspan="${kol}">${fmtDlugo(zIso(d))} · ${ile} ${odmianaAut(ile)}</td></tr>`;
+    }
+    wiersze += wierszAwizacji(a, true);
+  }
+  const akt = S.awz.filter(a => a.status === 'aktywna');
+  const pal = akt.reduce((s, a) => s + (+a.palety || 0), 0);
+  const nDost = akt.filter(a => a.rodzaj === 'dostawa').length, nOdb = akt.length - nDost;
+  w.innerHTML = `${pasekTygodnia(dni, false)}
+    <div class="akcje" style="margin-bottom:14px">
+      <span><b>${akt.length}</b> ${odmianaAut(akt.length)} · <b>${nDost}</b> ${odm(nDost, 'dostawa', 'dostawy', 'dostaw')} · <b>${nOdb}</b> ${odm(nOdb, 'odbiór', 'odbiory', 'odbiorów')} · <b>${pal}</b> ${odm(pal, 'paleta', 'palety', 'palet')}</span>
+      <label style="display:flex;gap:7px;align-items:center;margin-left:auto"><input type="checkbox" id="chOdw"${S.pokazOdwolane ? ' checked' : ''}> pokaż odwołane</label>
+      <button class="btn jasny maly" id="bKopiuj">Kopiuj do Excela</button>
+    </div>
+    ${lista.length ? `<div class="przewin"><table class="tab"><thead>${naglowekTabeli(true)}</thead><tbody>${wiersze}</tbody></table></div>` : '<p class="pusto">W tym tygodniu nie ma awizacji.</p>'}`;
+  podepnijPasek();
+  $('#chOdw').onchange = ev => { S.pokazOdwolane = ev.target.checked; renderLista(); };
+  $('#bKopiuj').onclick = async () => {
+    const nag = ['Dzień', 'Od', 'Do', 'Rampa', 'Rodzaj', 'Firma', 'Nr rej.', 'Kierowca', 'Telefon', 'Palety', 'Dokument', 'Uwagi', 'Status'];
+    const cz = v => String(v ?? '').replace(/[\t\r\n]+/g, ' ');
+    const txt = [nag.join('\t')].concat(lista.map(a => { const p = new Date(a.poczatek), k = new Date(a.koniec); return [fmtData(p), fmtGodz(p), fmtGodz(k), rampa(a.rampa_id).kod, nazwaRodzaju(a.rodzaj), nazwaFirmy(a.firma_id), a.nr_rej, a.kierowca, a.telefon, a.palety, a.nr_dokumentu, a.uwagi, a.status === 'odwolana' ? 'odwołana' : 'aktywna'].map(cz).join('\t'); })).join('\r\n');
+    toast(await kopiuj(txt) ? `Skopiowano ${lista.length} wierszy – wklej w Excelu (Ctrl+V).` : 'Nie udało się skopiować.', false);
+  };
+  $$('.tab tr.klik', w).forEach(tr => tr.onclick = () => otworzIstniejaca(tr.dataset.id));
+}
+function renderMoje() {
+  const w = $('#widok'), teraz = new Date();
+  const nad = S.moje.filter(a => a.status === 'aktywna' && new Date(a.koniec) >= teraz).sort((x, y) => new Date(x.poczatek) - new Date(y.poczatek));
+  const inne = S.moje.filter(a => !(a.status === 'aktywna' && new Date(a.koniec) >= teraz)).sort((x, y) => new Date(y.poczatek) - new Date(x.poczatek));
+  w.innerHTML = `
+    <section class="sekcja"><div class="sek-nag"><h2>Nadchodzące <span class="drobne">(${nad.length})</span></h2></div>
+      ${nad.length ? `<div class="przewin"><table class="tab"><thead>${naglowekTabeli(false)}</thead><tbody>${nad.map(a => wierszAwizacji(a, false)).join('')}</tbody></table></div>` : '<p class="pusto" style="padding:10px 0">Brak nadchodzących awizacji. Zarezerwuj okno w zakładce Kafelki.</p>'}
+    </section>
+    <section class="sekcja"><div class="sek-nag"><h2>Minione i odwołane <span class="drobne">(ostatnie 30 dni)</span></h2></div>
+      ${inne.length ? `<div class="przewin"><table class="tab"><thead>${naglowekTabeli(false)}</thead><tbody>${inne.map(a => wierszAwizacji(a, false)).join('')}</tbody></table></div>` : '<p class="drobne">Brak.</p>'}
+    </section>`;
+  $$('.tab tr.klik', w).forEach(tr => tr.onclick = () => otworzIstniejaca(tr.dataset.id));
+}
+
+/* =====================================================================
+   FIRMY I KONTA (logistyka)
+   ===================================================================== */
+function adresStrony() { return location.protocol === 'file:' ? '(adres strony po publikacji)' : location.origin + location.pathname; }
+function renderFirmy() {
+  const w = $('#widok');
+  const fe = S.fe, ke = S.ke;
+  const ileKont = id => S.konta.filter(k => k.firma_id === id).length;
+  const firmyAkt = S.firmy.filter(f => f.aktywna);
+  w.innerHTML = `
+  <section class="sekcja">
+    <div class="sek-nag"><h2>Firmy przewoźników</h2>${fe ? '' : '<button class="btn maly" id="bNowaFirma">+ Dodaj firmę</button>'}</div>
+    ${fe ? `<form class="formularz" id="fFirma">
+      <div class="eyebrow" style="margin-bottom:12px">${fe.id ? 'Edycja firmy' : 'Nowa firma'}</div>
+      <div id="fBlad"></div>
+      <div class="siatka-pol">
+        <label class="pole"><span>Nazwa *</span><input name="nazwa" value="${esc(fe.nazwa || '')}"></label>
+        <label class="pole"><span>NIP</span><input name="nip" value="${esc(fe.nip || '')}"></label>
+        <label class="pole"><span>Telefon</span><input name="telefon" value="${esc(fe.telefon || '')}"></label>
+        <label class="pole"><span>E-mail</span><input name="email" type="email" value="${esc(fe.email || '')}"></label>
+      </div>
+      <label class="pole"><span>Uwagi</span><input name="uwagi" value="${esc(fe.uwagi || '')}"></label>
+      <label style="display:flex;gap:8px;align-items:center;margin-bottom:14px"><input type="checkbox" name="aktywna"${fe.aktywna !== false ? ' checked' : ''}> aktywna (konta tej firmy mogą się logować i rezerwować)</label>
+      <div class="akcje"><button class="btn akc" type="submit">Zapisz firmę</button><button class="btn jasny" type="button" id="bAnulujFirme">Anuluj</button></div>
+    </form>` : ''}
+    ${S.firmy.length ? `<div class="przewin"><table class="tab"><thead><tr><th>Nazwa</th><th>NIP</th><th>Telefon</th><th>E-mail</th><th class="num">Konta</th><th>Status</th><th></th></tr></thead><tbody>
+      ${S.firmy.map(f => `<tr${f.aktywna ? '' : ' class="odw"'}><td><b>${esc(f.nazwa)}</b>${f.uwagi ? `<div class="drobne">${esc(f.uwagi)}</div>` : ''}</td><td class="nw">${esc(f.nip || '')}</td><td class="nw">${esc(f.telefon || '')}</td><td>${esc(f.email || '')}</td><td class="num">${ileKont(f.id)}</td><td class="st">${f.aktywna ? 'aktywna' : 'zablokowana'}</td><td class="nw"><button class="lnk" data-edf="${f.id}">Edytuj</button></td></tr>`).join('')}
+    </tbody></table></div>` : '<p class="pusto">Nie ma jeszcze firm. Dodaj pierwszą firmę przewoźnika.</p>'}
+  </section>
+  <section class="sekcja">
+    <div class="sek-nag"><h2>Konta</h2>${ke ? '' : '<button class="btn maly" id="bNoweKonto">+ Dodaj konto</button>'}</div>
+    ${S.kWynik ? `<div class="wynik"><b>Konto utworzone.</b> Przekaż te dane osobie, która będzie z niego korzystać:
+      <pre id="kDane">${esc(S.kWynik)}</pre>
+      <div class="akcje"><button class="btn maly" id="bKopiujDane">Kopiuj</button><button class="btn jasny maly" id="bZamknijWynik">Zamknij</button></div></div>` : ''}
+    ${ke ? `<form class="formularz" id="fKonto">
+      <div class="eyebrow" style="margin-bottom:12px">Nowe konto</div>
+      <div id="kBlad"></div>
+      <div class="pole"><span class="et">Rola</span><div class="seg" id="segRola" style="max-width:420px">
+        <button type="button" data-r="przewoznik" class="${ke.rola === 'przewoznik' ? 'akt' : ''}">Przewoźnik</button>
+        <button type="button" data-r="logistyka" class="${ke.rola === 'logistyka' ? 'akt' : ''}">Logistyka (biuro)</button>
+      </div></div>
+      <div class="siatka-pol">
+        ${ke.rola === 'przewoznik' ? `<label class="pole"><span>Firma *</span><select name="firma_id"><option value="">— wybierz —</option>${firmyAkt.map(f => `<option value="${f.id}"${String(f.id) === String(ke.firma_id) ? ' selected' : ''}>${esc(f.nazwa)}</option>`).join('')}</select></label>` : ''}
+        <label class="pole"><span>Login * (małe litery, cyfry, . - _)</span><input name="login" value="${esc(ke.login || '')}" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+        <label class="pole"><span>Imię i nazwisko / opis</span><input name="imie" value="${esc(ke.imie || '')}" autocomplete="off"></label>
+        <label class="pole"><span>${ke.rola === 'logistyka' ? 'PIN lub hasło *' : 'Hasło *'} (min. 6 znaków)</span>
+          <div style="display:flex;gap:6px"><input name="haslo" value="${esc(ke.haslo || '')}" autocomplete="off" spellcheck="false"><button type="button" class="btn jasny" id="bLosuj">Losuj</button></div></label>
+      </div>
+      <div class="akcje"><button class="btn akc" type="submit" id="bUtworzKonto">Utwórz konto</button><button class="btn jasny" type="button" id="bAnulujKonto">Anuluj</button></div>
+    </form>` : ''}
+    <div class="przewin"><table class="tab"><thead><tr><th>Login</th><th>Imię i nazwisko / opis</th><th>Rola</th><th>Firma</th><th>Status</th><th></th></tr></thead><tbody>
+      ${S.konta.map(k => `<tr${k.aktywny ? '' : ' class="odw"'}><td class="nw"><b>${esc(k.login)}</b></td><td>${esc(k.imie || '')}</td><td>${k.rola === 'logistyka' ? 'logistyka' : 'przewoźnik'}</td><td>${k.firma_id ? esc(nazwaFirmy(k.firma_id)) : '—'}</td><td class="st">${k.aktywny ? 'aktywne' : 'zablokowane'}</td>
+        <td class="nw">${k.id === S.ja.id ? '<span class="drobne">to Ty</span>' : `<button class="lnk" data-haslo="${esc(k.id)}">Nowe hasło</button> &nbsp; <button class="lnk" data-blok="${esc(k.id)}">${k.aktywny ? 'Zablokuj' : 'Odblokuj'}</button>`}</td></tr>
+        ${S.hasloDla === k.id ? `<tr class="edycja"><td colspan="6"><form id="fNoweHaslo" class="akcje"><span>Nowe hasło dla <b>${esc(k.login)}</b>:</span><input name="h" style="max-width:220px" autocomplete="off" value="${esc(losujHaslo())}"><button class="btn maly" type="submit">Ustaw</button><button class="btn jasny maly" type="button" id="bAnulujHaslo">Anuluj</button><span id="nhBlad" class="drobne"></span></form></td></tr>` : ''}`).join('')}
+    </tbody></table></div>
+    <p class="drobne" style="margin-top:12px">Zablokowane konto nie zaloguje się i nie zobaczy danych. Zablokowanie firmy blokuje wszystkie jej konta.</p>
+  </section>`;
+  const on = (id, fn) => { const el = $('#' + id); if (el) el.onclick = fn; };
+  on('bNowaFirma', () => { S.fe = { aktywna: true }; renderFirmy(); $('#fFirma').nazwa.focus(); });
+  on('bAnulujFirme', () => { S.fe = null; renderFirmy(); });
+  $$('[data-edf]', w).forEach(b => b.onclick = () => { S.fe = { ...S.firmy.find(f => String(f.id) === b.dataset.edf) }; renderFirmy(); window.scrollTo({ top: 0 }); });
+  const ff = $('#fFirma');
+  if (ff) ff.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const dane = { ...(S.fe.id ? { id: S.fe.id } : {}), nazwa: ff.nazwa.value.trim(), nip: ff.nip.value.trim() || null, telefon: ff.telefon.value.trim() || null, email: ff.email.value.trim() || null, uwagi: ff.uwagi.value.trim() || null, aktywna: ff.aktywna.checked };
+    if (!dane.nazwa) { $('#fBlad').innerHTML = '<div class="komunikat">Podaj nazwę firmy.</div>'; return; }
+    try { await S.db.zapiszFirme(dane); S.fe = null; S.firmy = await S.db.firmy(); toast('Firma zapisana.'); renderFirmy(); }
+    catch (e) { $('#fBlad').innerHTML = `<div class="komunikat">${esc(e.message)}</div>`; }
+  });
+  on('bNoweKonto', () => { S.ke = { rola: 'przewoznik', firma_id: '', login: '', imie: '', haslo: losujHaslo() }; S.kWynik = null; renderFirmy(); const f = $('#fKonto'); (f.firma_id || f.login).focus(); });
+  on('bAnulujKonto', () => { S.ke = null; renderFirmy(); });
+  on('bZamknijWynik', () => { S.kWynik = null; renderFirmy(); });
+  on('bKopiujDane', async () => { toast(await kopiuj(S.kWynik) ? 'Skopiowano dane logowania.' : 'Nie udało się skopiować.'); });
+  const fk = $('#fKonto');
+  if (fk) {
+    fk.addEventListener('input', ev => { const t = ev.target; if (t.name) S.ke[t.name] = t.value; });
+    $$('#segRola button').forEach(b => b.onclick = () => { S.ke.rola = b.dataset.r; renderFirmy(); });
+    on('bLosuj', () => { S.ke.haslo = losujHaslo(); fk.haslo.value = S.ke.haslo; });
+    fk.addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const k = S.ke, zle = t => { $('#kBlad').innerHTML = `<div class="komunikat">${esc(t)}</div>`; };
+      k.login = String(k.login || '').trim().toLowerCase();
+      if (k.rola === 'przewoznik' && !k.firma_id) return zle('Wybierz firmę.');
+      if (!/^[a-z0-9][a-z0-9._-]{1,39}$/.test(k.login) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(k.login)) return zle('Login: 2–40 znaków – małe litery bez polskich znaków, cyfry, kropka, myślnik, podkreślnik.');
+      if (S.konta.some(x => x.login === k.login)) return zle('Taki login już istnieje.');
+      if ((k.haslo || '').length < 6) return zle('Hasło musi mieć co najmniej 6 znaków.');
+      const b = $('#bUtworzKonto'); b.disabled = true; b.textContent = 'Tworzę…';
+      try {
+        await S.db.dodajKonto(k);
+        const firma = k.rola === 'przewoznik' ? nazwaFirmy(+k.firma_id) : 'logistyka';
+        S.kWynik = `Awizacja – ${firma}\nAdres: ${adresStrony()}\nLogin: ${k.login}\nHasło: ${k.haslo}\n(hasło można zmienić po zalogowaniu: „Zmień hasło”)`;
+        S.ke = null; S.konta = await S.db.konta(); renderFirmy();
+      } catch (e) { b.disabled = false; b.textContent = 'Utwórz konto'; zle(e.message); }
+    });
+  }
+  $$('[data-haslo]', w).forEach(b => b.onclick = () => { S.hasloDla = b.dataset.haslo; renderFirmy(); });
+  on('bAnulujHaslo', () => { S.hasloDla = null; renderFirmy(); });
+  const fh = $('#fNoweHaslo');
+  if (fh) fh.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const k = S.konta.find(x => x.id === S.hasloDla), h = fh.h.value.trim();
+    if (h.length < 6) { $('#nhBlad').textContent = 'Min. 6 znaków.'; return; }
+    try {
+      await S.db.ustawHaslo(k.login, h);
+      S.hasloDla = null; S.kWynik = `Awizacja – nowe hasło\nAdres: ${adresStrony()}\nLogin: ${k.login}\nHasło: ${h}`; renderFirmy();
+    } catch (e) { $('#nhBlad').textContent = e.message; }
+  });
+  $$('[data-blok]', w).forEach(b => b.onclick = async () => {
+    const k = S.konta.find(x => x.id === b.dataset.blok);
+    if (k.aktywny && !confirm(`Zablokować konto ${k.login}? Nie będzie mogło się zalogować ani rezerwować.`)) return;
+    try { await S.db.zmienKonto(k.id, { aktywny: !k.aktywny }); S.konta = await S.db.konta(); renderFirmy(); toast(k.aktywny ? 'Konto zablokowane.' : 'Konto odblokowane.'); }
+    catch (e) { toast(e.message, true); }
+  });
+}
+
+/* =====================================================================
+   USTAWIENIA (logistyka)
+   ===================================================================== */
+function renderUstawienia() {
+  const w = $('#widok');
+  if (!S.uste) S.uste = JSON.parse(JSON.stringify(S.ust));
+  const u = S.uste, rok = new Date().getFullYear(), dzis = isoDzien(new Date());
+  const wolne = [...u.dni_wolne].sort().filter(d => d >= dzis);
+  const ukryte = u.dni_wolne.length - wolne.length;
+  const zmiany = JSON.stringify(u) !== JSON.stringify(S.ust);
+  w.innerHTML = `
+  <form id="fUst">
+  <section class="sekcja">
+    <div class="sek-nag"><h2>Okna czasowe</h2></div>
+    <div id="uBlad"></div>
+    <div class="siatka-pol">
+      <label class="pole"><span>Rampa przyjmuje od</span><input type="time" name="od" step="900" value="${hhmm(u.od_min)}"></label>
+      <label class="pole"><span>do</span><input type="time" name="do" step="900" value="${u.do_min >= 1440 ? '00:00' : hhmm(u.do_min)}"></label>
+      <label class="pole"><span>Długość jednego okna</span><select name="okno_min">${[15, 20, 30, 60].map(m => `<option value="${m}"${m === u.okno_min ? ' selected' : ''}>${m} min</option>`).join('')}</select></label>
+      <label class="pole"><span>Jedna rezerwacja – maks. liczba okien</span><input type="number" name="max_okien" min="1" max="16" value="${u.max_okien}"></label>
+      <label class="pole"><span>Rezerwacja najwyżej dni naprzód</span><input type="number" name="dni_naprzod" min="1" max="120" value="${u.dni_naprzod}"></label>
+      <label class="pole"><span>Rezerwacja najpóźniej (min przed oknem)</span><input type="number" name="min_wyprzedzenie" min="0" max="10080" value="${u.min_wyprzedzenie}"></label>
+      <label class="pole"><span>Zmiana / odwołanie najpóźniej (min przed oknem)</span><input type="number" name="odwolanie_min" min="0" max="10080" value="${u.odwolanie_min}"></label>
+    </div>
+    <div class="pole"><span class="et">Dni pracy rampy</span><div class="dni-check">${[1, 2, 3, 4, 5, 6, 7].map(d => `<label><input type="checkbox" name="dzien" value="${d}"${u.dni_robocze.includes(d) ? ' checked' : ''}> ${DNI_PELNE[d - 1]}</label>`).join('')}</div></div>
+    <p class="drobne">Limity dotyczą przewoźników. Logistyka może wpisać awizację na dowolny dzień, także wolny.</p>
+  </section>
+  <section class="sekcja">
+    <div class="sek-nag"><h2>Dni wolne</h2>
+      <div class="akcje"><input type="date" id="nowyWolny" style="width:auto"><button type="button" class="btn jasny maly" id="bDodajWolny">Dodaj dzień</button><button type="button" class="btn jasny maly" id="bSwieta">+ Święta ustawowe ${rok}–${rok + 1}</button></div>
+    </div>
+    ${wolne.length ? `<div class="chipy">${wolne.map(d => `<span class="chip">${fmtKrotko(zIso(d))}.${d.slice(0, 4)}<button type="button" data-usun="${d}" aria-label="Usuń ${d}">×</button></span>`).join('')}</div>` : '<p class="drobne">Brak dni wolnych w przyszłości.</p>'}
+    ${ukryte ? `<p class="drobne">Minione dni wolne: ${ukryte} (ukryte).</p>` : ''}
+  </section>
+  <div class="akcje sekcja"><button type="submit" class="btn akc" id="bZapiszUst"${zmiany ? '' : ' disabled'}>Zapisz ustawienia</button>${zmiany ? '<button type="button" class="btn jasny" id="bCofnijUst">Cofnij zmiany</button><span class="drobne">Są niezapisane zmiany.</span>' : '<span class="drobne">Wszystko zapisane.</span>'}</div>
+  </form>
+  <section class="sekcja">
+    <div class="sek-nag"><h2>Rampy</h2>${S.nowaRampa ? '' : '<button class="btn maly" id="bNowaRampa">+ Dodaj rampę</button>'}</div>
+    <div class="przewin"><table class="tab"><thead><tr><th>Kod</th><th>Nazwa</th><th class="num">Kolejność</th><th>Aktywna</th><th></th></tr></thead><tbody>
+      ${S.rampy.concat(S.nowaRampa ? [S.nowaRampa] : []).map((r, i) => `<tr data-r="${i}">
+        <td><input name="kod" value="${esc(r.kod)}" style="max-width:90px"></td><td><input name="nazwa" value="${esc(r.nazwa)}"></td>
+        <td class="num"><input name="kolejnosc" type="number" value="${r.kolejnosc ?? 1}" style="max-width:80px"></td>
+        <td><input type="checkbox" name="aktywna"${r.aktywna ? ' checked' : ''}></td>
+        <td class="nw"><button class="btn maly" data-zapr="${i}">Zapisz</button>${r.id ? '' : ' <button class="btn jasny maly" id="bAnulujRampe">Anuluj</button>'}</td></tr>`).join('')}
+    </tbody></table></div>
+  </section>`;
+  const f = $('#fUst');
+  const czytajFormularz = () => {
+    const doV = f.elements['do'].value;
+    const doM = doV ? (doV === '00:00' ? 1440 : +doV.slice(0, 2) * 60 + +doV.slice(3, 5)) : u.do_min;
+    const odV = f.od.value;
+    Object.assign(u, {
+      od_min: odV ? +odV.slice(0, 2) * 60 + +odV.slice(3, 5) : u.od_min, do_min: doM, okno_min: +f.okno_min.value,
+      max_okien: +f.max_okien.value || 1, dni_naprzod: +f.dni_naprzod.value || 1,
+      min_wyprzedzenie: Math.max(0, +f.min_wyprzedzenie.value || 0), odwolanie_min: Math.max(0, +f.odwolanie_min.value || 0),
+      dni_robocze: $$('input[name=dzien]', f).filter(c => c.checked).map(c => +c.value)
+    });
+  };
+  f.addEventListener('change', () => { czytajFormularz(); renderUstawienia(); });
+  $('#bDodajWolny').onclick = () => { const v = $('#nowyWolny').value; if (!v) return; czytajFormularz(); if (!u.dni_wolne.includes(v)) u.dni_wolne.push(v); u.dni_wolne.sort(); renderUstawienia(); };
+  $('#bSwieta').onclick = () => { czytajFormularz(); u.dni_wolne = [...new Set([...u.dni_wolne, ...swieta(rok), ...swieta(rok + 1)])].sort(); renderUstawienia(); };
+  $$('[data-usun]', w).forEach(b => b.onclick = () => { czytajFormularz(); u.dni_wolne = u.dni_wolne.filter(d => d !== b.dataset.usun); renderUstawienia(); });
+  const c = $('#bCofnijUst'); if (c) c.onclick = () => { S.uste = null; renderUstawienia(); };
+  f.addEventListener('submit', async ev => {
+    ev.preventDefault(); czytajFormularz();
+    const zle = t => { $('#uBlad').innerHTML = `<div class="komunikat">${esc(t)}</div>`; window.scrollTo({ top: 0 }); };
+    if (!(u.od_min < u.do_min)) return zle('Godzina „od” musi być wcześniejsza niż „do”.');
+    if ((u.do_min - u.od_min) < u.okno_min) return zle('Między „od” a „do” musi zmieścić się co najmniej jedno okno.');
+    if ((u.od_min % u.okno_min) !== 0) return zle(`Godzina „od” powinna pasować do długości okna (${u.okno_min} min), np. ${hhmm(Math.floor(u.od_min / u.okno_min) * u.okno_min)}.`);
+    if (!u.dni_robocze.length) return zle('Zaznacz co najmniej jeden dzień pracy.');
+    if (u.max_okien < 1 || u.max_okien > 16) return zle('Limit okien na rezerwację: od 1 do 16.');
+    try {
+      const { id, strefa, ...x } = u;
+      await S.db.zapiszUstawienia(x);
+      S.uste = null; await wczytajSlowniki(); toast('Ustawienia zapisane.'); renderUstawienia();
+    } catch (e) { zle(e.message); }
+  });
+  const nr = $('#bNowaRampa'); if (nr) nr.onclick = () => { S.nowaRampa = { kod: 'R' + (S.rampy.length + 1), nazwa: 'Rampa ' + (S.rampy.length + 1), kolejnosc: S.rampy.length + 1, aktywna: true }; renderUstawienia(); };
+  const ar = $('#bAnulujRampe'); if (ar) ar.onclick = () => { S.nowaRampa = null; renderUstawienia(); };
+  $$('[data-zapr]', w).forEach(b => b.onclick = async () => {
+    const i = +b.dataset.zapr, tr = b.closest('tr'), r = S.rampy.concat(S.nowaRampa ? [S.nowaRampa] : [])[i];
+    const dane = { ...(r.id ? { id: r.id } : {}), kod: $('[name=kod]', tr).value.trim().toUpperCase(), nazwa: $('[name=nazwa]', tr).value.trim(), kolejnosc: +$('[name=kolejnosc]', tr).value || 1, aktywna: $('[name=aktywna]', tr).checked };
+    if (!dane.kod || !dane.nazwa) return toast('Podaj kod i nazwę rampy.', true);
+    if (r.id && !dane.aktywna && S.rampy.filter(x => x.aktywna && x.id !== r.id).length === 0) return toast('Musi zostać co najmniej jedna aktywna rampa.', true);
+    try { await S.db.zapiszRampe(dane); S.nowaRampa = null; await wczytajSlowniki(); toast('Rampa zapisana.'); renderPowloka(); S.widok = 'ustawienia'; $$('#zakladki button').forEach(x => x.classList.toggle('akt', x.dataset.w === 'ustawienia')); renderWidok(); }
+    catch (e) { toast(e.message, true); }
+  });
+}
+
+/* ---------- zdarzenia globalne ---------- */
+let szer = czyWaski();
+window.addEventListener('resize', () => { const t = czyWaski(); if (t !== szer) { szer = t; if (S.ja && !S.drag) renderWidok(); } });
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible' || !S.ja) return;
+  try { await wczytajSlowniki(); } catch (e) {}
+  odswiez(true);
+});
+setInterval(() => { if (S.ja && document.visibilityState === 'visible' && !S.ed) odswiez(true); }, 60000);
+
+window.AWZ = { S, start, odswiez, renderWidok, walidujCzas, swieta, wielkanoc, loginNaEmail, DemoDB, otworzNowa, otworzIstniejaca };
+start();
+</script>
+</body>
+</html>
