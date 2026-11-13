@@ -128,11 +128,11 @@ main{padding:22px 28px 70px}
 .kaf.pod{visibility:hidden}
 .kol.swieto .cialo{background:repeating-linear-gradient(135deg,transparent 0 8px,rgba(255,90,31,.07) 8px 9px)}
 .kol.swieto .kaf.wolne{background:rgba(255,255,255,.7)}
-.rez{position:absolute;left:3px;right:3px;margin-top:1px;z-index:2;border-radius:2px;padding:4px 8px;font-size:12px;line-height:1.3;overflow:hidden;color:#fff;cursor:pointer;outline:none}
+.rez{position:absolute;left:3px;right:3px;margin-top:1px;z-index:2;border-radius:2px;padding:4px 8px;font-size:12px;line-height:1.3;overflow:hidden;color:#fff;background:var(--ink);cursor:pointer;outline:none}
 .rez .r1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rez .r2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.82;font-size:11px;font-variant-numeric:tabular-nums}
-.rez.dostawa{background:var(--accent)}
-.rez.odbior{background:var(--odbior)}
+.rodz{display:inline-block;min-width:1.05em;font-weight:700}
+.kolor-firmy{display:inline-block;width:11px;height:11px;margin-right:7px;vertical-align:-1px;border-radius:2px}
 .rez:hover,.rez:focus-visible{box-shadow:0 0 0 2px var(--paper),0 0 0 3px var(--ink)}
 .rez.obce{background:var(--zaj) repeating-linear-gradient(135deg,transparent 0 7px,rgba(0,0,0,.05) 7px 8px);color:var(--muted);cursor:default;display:flex;align-items:center}
 .rez.obce:hover{box-shadow:none}
@@ -179,7 +179,11 @@ table.tab{width:100%;border-collapse:collapse;font-size:13px;background:var(--pa
 .tab tr.dzien td{background:var(--bg);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);padding-top:14px}
 .tab tr.edycja td{background:#faf9f6}
 .kropka{display:inline-block;width:9px;height:9px;margin-right:6px;vertical-align:0}
-.kropka.dostawa{background:var(--accent)} .kropka.odbior{background:var(--odbior)}
+.probki{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.probka{width:30px;height:30px;border:0;border-radius:2px;position:relative;padding:0}
+.probka.akt{outline:2px solid var(--ink);outline-offset:2px}
+.probka.uzyta::after{content:'';position:absolute;right:4px;top:4px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.probki input[type=color]{width:46px;height:30px;padding:2px;min-height:0;cursor:pointer}
 .formularz{background:#fff;border:1px solid var(--ink);padding:18px;margin-bottom:16px}
 .formularz .siatka-pol{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 14px}
 .siatka-pol{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:0 16px}
@@ -235,7 +239,7 @@ const KONFIG = {
   prefiks: 'awizacja+',
   supabaseJs: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0'
 };
-const WERSJA = 'v1.1';
+const WERSJA = 'v1.2';
 
 /* ---------- drobiazgi ---------- */
 const $ = (s, el = document) => el.querySelector(s);
@@ -263,6 +267,19 @@ const fmtDl = min => min < 60 ? min + ' min' : (min / 60).toString().replace('.'
 const odm = (n, jeden, kilka, wiele) => n === 1 ? jeden : ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? kilka : wiele);
 const odmianaAut = n => odm(n, 'auto', 'auta', 'aut');
 const nazwaRodzaju = r => r === 'odbior' ? 'odbiór' : 'dostawa';
+const strzalka = r => r === 'odbior' ? '↑' : '↓';
+/* kolory firm – te same 12 co w bazie (awizacja-v1.2-kolory.sql) */
+const PALETA = ['#2F6FDE', '#E0483A', '#1E9E6A', '#8E44AD', '#C76B12', '#0F8B9C', '#B83280', '#6B4F2A', '#3D4DB7', '#6E8A12', '#D4A017', '#1A1A1A'];
+function luminancja(hex) {
+  const c = String(hex).replace('#', '');
+  const k = [0, 2, 4].map(i => parseInt(c.substr(i, 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+  return 0.2126 * k[0] + 0.7152 * k[1] + 0.0722 * k[2];
+}
+const tekstNa = hex => (1.05 / (luminancja(hex) + 0.05)) >= 3.5 ? '#ffffff' : '#151514';
+function wolnyKolor(firmy, pominId) {
+  const ile = PALETA.map(k => firmy.filter(f => f.id !== pominId && String(f.kolor || '').toUpperCase() === k).length);
+  return PALETA[ile.indexOf(Math.min(...ile))];
+}
 function tydzienISO(d) {
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const dn = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dn);
@@ -325,9 +342,9 @@ function demoDane() {
   const ust = { id: 1, okno_min: 30, od_min: 360, do_min: 1320, dni_robocze: [1, 2, 3, 4, 5], dni_wolne: [...swieta(rok), ...swieta(rok + 1)], dni_naprzod: 14, min_wyprzedzenie: 60, odwolanie_min: 120, max_okien: 4, strefa: 'Europe/Warsaw' };
   const teraz = new Date().toISOString();
   const firmy = [
-    { id: 1, nazwa: 'TransDemo Sp. z o.o.', nip: '000-000-00-01', telefon: '600 100 200', email: 'dyspozycja@transdemo.example', uwagi: null, aktywna: true, utworzono: teraz },
-    { id: 2, nazwa: 'Spedycja Próbna', nip: '000-000-00-02', telefon: '600 200 300', email: 'biuro@probna.example', uwagi: null, aktywna: true, utworzono: teraz },
-    { id: 3, nazwa: 'Auto-Kurier Test', nip: '000-000-00-03', telefon: '600 300 400', email: 'kontakt@kurier-test.example', uwagi: null, aktywna: true, utworzono: teraz }
+    { id: 1, kolor: PALETA[0], nazwa: 'TransDemo Sp. z o.o.', nip: '000-000-00-01', telefon: '600 100 200', email: 'dyspozycja@transdemo.example', uwagi: null, aktywna: true, utworzono: teraz },
+    { id: 2, kolor: PALETA[1], nazwa: 'Spedycja Próbna', nip: '000-000-00-02', telefon: '600 200 300', email: 'biuro@probna.example', uwagi: null, aktywna: true, utworzono: teraz },
+    { id: 3, kolor: PALETA[2], nazwa: 'Auto-Kurier Test', nip: '000-000-00-03', telefon: '600 300 400', email: 'kontakt@kurier-test.example', uwagi: null, aktywna: true, utworzono: teraz }
   ];
   const konta = [
     { id: 'u-biuro', login: 'biuro', imie: 'Biuro logistyki', rola: 'logistyka', firma_id: null, aktywny: true, haslo: '123456', utworzono: teraz },
@@ -371,6 +388,7 @@ function DemoDB() {
   function czytaj() {
     let d = null; try { d = JSON.parse(localStorage.getItem(K) || 'null'); } catch (e) {}
     if (!d || d.wersja !== 1) { d = demoDane(); pisz(d); }
+    if (d.firmy.some(f => !f.kolor)) { [...d.firmy].sort((a, b) => a.id - b.id).forEach(f => { if (!f.kolor) f.kolor = wolnyKolor(d.firmy, f.id); }); pisz(d); }
     return d;
   }
   function sesjaId() { try { return sessionStorage.getItem(KS); } catch (e) { return null; } }
@@ -482,7 +500,7 @@ function DemoDB() {
     async zapiszFirme(f) {
       const { d, rola } = kto(); tylkoLog(rola);
       if (f.id) { const x = d.firmy.find(y => y.id === f.id); Object.assign(x, f); }
-      else d.firmy.push({ ...f, id: ++d.seqF, utworzono: new Date().toISOString() });
+      else d.firmy.push({ ...f, kolor: f.kolor || wolnyKolor(d.firmy), id: ++d.seqF, utworzono: new Date().toISOString() });
       pisz(d);
     },
     async zapiszUstawienia(u) { const { d, rola } = kto(); tylkoLog(rola); d.ust = { ...d.ust, ...u, id: 1 }; pisz(d); },
@@ -518,6 +536,7 @@ function bladSb(e) {
   let x;
   if (e.code === '23P01') { x = new Error('To okno jest już zajęte – ktoś właśnie je zarezerwował. Widok został odświeżony.'); x.code = '23P01'; return x; }
   if (e.code === '42501' || /row-level security|permission denied/i.test(m)) return new Error('Brak uprawnień do tej operacji.');
+  if (/kolor/i.test(m) && /column|does not exist|schema cache/i.test(m)) return new Error('W bazie brakuje kolorów firm – uruchom w Supabase plik awizacja-v1.2-kolory.sql (SQL Editor).');
   if (e.code === '42P01' || e.code === 'PGRST205' || /does not exist|schema cache/i.test(m)) return new Error('Baza nie jest przygotowana – uruchom plik awizacja-baza.sql w Supabase (SQL Editor).');
   if (e.code === '23505') return new Error('Taki wpis już istnieje (powtórzony login, kod albo adres).');
   if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return new Error('Brak połączenia z bazą. Sprawdź internet i spróbuj ponownie.');
@@ -774,6 +793,12 @@ const liczbaSlotow = () => Math.max(0, Math.floor((S.ust.do_min - S.ust.od_min) 
 const czyWaski = () => window.innerWidth <= 760;
 const wysokosc = () => czyWaski() ? 40 : 30;
 const nazwaFirmy = id => (S.firmy.find(f => f.id === id) || {}).nazwa || (S.ja.rola === 'logistyka' ? '—' : '');
+function kolorFirmy(id) {
+  const f = S.firmy.find(f => f.id === id);
+  if (f && /^#[0-9a-f]{6}$/i.test(f.kolor || '')) return f.kolor;
+  const ids = S.firmy.map(f => f.id).sort((a, b) => a - b), i = ids.indexOf(id);
+  return PALETA[(i < 0 ? 0 : i) % PALETA.length];
+}
 const loginKonta = uid => { const k = S.konta.find(k => k.id === uid); return k ? k.login : ''; };
 const rampa = id => S.rampy.find(r => r.id === id) || { kod: '?', nazwa: '?' };
 
@@ -891,14 +916,18 @@ function pasekTygodnia(dni, zLegenda) {
     <div class="tyg">Tydzień ${tydzienISO(S.tydzien)}<small>${zakresTxt(dni.length ? dni : [S.tydzien, dodajDni(S.tydzien, 6)])}</small></div>
     <div class="nav"><button id="bPoprz" title="Poprzedni tydzień" aria-label="Poprzedni tydzień">←</button><button id="bDzis">Dziś</button><button id="bNast" title="Następny tydzień" aria-label="Następny tydzień">→</button></div>
     ${akt.length > 1 ? `<div class="seg" id="segRampy">${akt.map(r => `<button data-r="${r.id}" class="${r.id === S.rampa ? 'akt' : ''}">${esc(r.kod)}</button>`).join('')}</div>` : ''}
-    ${zLegenda ? `<div class="legenda">
-      <span><i class="l-wolne"></i>wolne</span>
-      <span><i class="l-dostawa"></i>${S.ja.rola === 'przewoznik' ? 'moja dostawa' : 'dostawa'}</span>
-      <span><i class="l-odbior"></i>${S.ja.rola === 'przewoznik' ? 'mój odbiór' : 'odbiór'}</span>
-      ${S.ja.rola === 'przewoznik' ? '<span><i class="l-zaj"></i>zajęte</span>' : ''}
-      <span><i class="l-niedost"></i>niedostępne</span>
-    </div>` : ''}
+    ${zLegenda ? legenda() : ''}
   </div>`;
+}
+function legenda() {
+  let firmy;
+  if (S.ja.rola === 'przewoznik') firmy = `<span><i style="background:${kolorFirmy(S.ja.firma_id)};border-color:transparent"></i>moje</span><span><i class="l-zaj"></i>zajęte</span>`;
+  else {
+    const ids = [...new Set(S.awz.filter(a => a.status === 'aktywna' && a.rampa_id === S.rampa).map(a => a.firma_id))]
+      .sort((a, b) => nazwaFirmy(a).localeCompare(nazwaFirmy(b), 'pl'));
+    firmy = ids.map(id => `<span><i style="background:${kolorFirmy(id)};border-color:transparent"></i>${esc(nazwaFirmy(id))}</span>`).join('');
+  }
+  return `<div class="legenda"><span><i class="l-wolne"></i>wolne</span>${firmy}<span><i class="l-niedost"></i>niedostępne</span><span><b>↓</b> dostawa · <b>↑</b> odbiór</span></div>`;
 }
 function podepnijPasek() {
   const p = $('#bPoprz'); if (!p) return;
@@ -988,8 +1017,9 @@ function kolumnaDnia(d, bl, teraz, n, H) {
     if (b.a) {
       const a = b.a, f = log ? nazwaFirmy(a.firma_id) : '';
       const opis = `${fmtGodz(b.p)}–${fmtGodz(b.k)} · ${nazwaRodzaju(a.rodzaj)} · ${a.nr_rej}${f ? ' · ' + f : ''}${a.kierowca ? ' · ' + a.kierowca : ''}${a.palety != null ? ' · ' + a.palety + ' pal.' : ''}${a.nr_dokumentu ? ' · ' + a.nr_dokumentu : ''}${a.uwagi ? ' · ' + a.uwagi : ''}`;
-      rez += `<div class="rez ${a.rodzaj}${krotka ? ' krotka' : ''}" data-id="${esc(a.id)}" role="button" tabindex="0" style="top:${t0}px;height:${h2}px" title="${esc(opis)}" aria-label="${esc(opis)}">
-        <div class="r1"><b>${esc(a.nr_rej)}</b>${f ? ' · ' + esc(f) : (krotka ? ' · ' + fmtGodz(b.p) : '')}</div>
+      const kol = kolorFirmy(a.firma_id);
+      rez += `<div class="rez ${a.rodzaj}${krotka ? ' krotka' : ''}" data-id="${esc(a.id)}" role="button" tabindex="0" style="top:${t0}px;height:${h2}px;background:${kol};color:${tekstNa(kol)}" title="${esc(opis)}" aria-label="${esc(opis)}">
+        <div class="r1"><span class="rodz">${strzalka(a.rodzaj)}</span><b>${esc(a.nr_rej)}</b>${f ? ' · ' + esc(f) : (krotka ? ' · ' + fmtGodz(b.p) : '')}</div>
         ${krotka ? '' : `<div class="r2">${fmtGodz(b.p)}–${fmtGodz(b.k)} · ${nazwaRodzaju(a.rodzaj)}${a.palety != null ? ' · ' + a.palety + ' pal.' : ''}</div>`}
       </div>`;
     } else {
@@ -1292,8 +1322,8 @@ function wierszAwizacji(a, zFirma) {
   return `<tr class="klik${odw ? ' odw' : ''}" data-id="${esc(a.id)}">
     <td class="nw">${fmtKrotko(p)}</td><td class="nw">${fmtGodz(p)}–${fmtGodz(k)}</td>
     ${S.rampy.filter(r => r.aktywna).length > 1 ? `<td>${esc(rampa(a.rampa_id).kod)}</td>` : ''}
-    <td class="nw"><span class="kropka ${a.rodzaj}"></span>${nazwaRodzaju(a.rodzaj)}</td>
-    ${zFirma ? `<td>${esc(nazwaFirmy(a.firma_id))}</td>` : ''}
+    <td class="nw"><b>${strzalka(a.rodzaj)}</b> ${nazwaRodzaju(a.rodzaj)}</td>
+    ${zFirma ? `<td class="nw"><span class="kolor-firmy" style="background:${kolorFirmy(a.firma_id)}"></span>${esc(nazwaFirmy(a.firma_id))}</td>` : ''}
     <td class="nw"><b>${esc(a.nr_rej)}</b></td><td>${esc(a.kierowca || '')}</td><td class="nw">${esc(a.telefon || '')}</td>
     <td class="num">${a.palety ?? ''}</td><td>${esc(a.nr_dokumentu || '')}</td><td>${esc(a.uwagi || '')}</td>
     <td class="st nw">${odw ? 'odwołana' : (k < new Date() ? 'minęła' : 'aktywna')}</td>
@@ -1371,11 +1401,15 @@ function renderFirmy() {
         <label class="pole"><span>E-mail</span><input name="email" type="email" value="${esc(fe.email || '')}"></label>
       </div>
       <label class="pole"><span>Uwagi</span><input name="uwagi" value="${esc(fe.uwagi || '')}"></label>
+      <div class="pole"><span class="et">Kolor na kafelkach</span>
+        <div class="probki" id="probki">${PALETA.map(k => { const kto = S.firmy.find(x => x.id !== fe.id && String(x.kolor || '').toUpperCase() === k); return `<button type="button" class="probka${String(fe.kolor || '').toUpperCase() === k ? ' akt' : ''}${kto ? ' uzyta' : ''}" data-k="${k}" style="background:${k}" title="${kto ? 'ma już: ' + esc(kto.nazwa) : 'wolny'}" aria-label="kolor ${k}${kto ? ', ma już ' + esc(kto.nazwa) : ''}"></button>`; }).join('')}<input type="color" id="kolorInny" value="${esc(String(fe.kolor || '#888888').toLowerCase())}" title="Inny kolor"></div>
+        <div class="drobne" style="margin-top:5px">Biała kropka = ten kolor ma już inna firma. Ostatnie pole = dowolny inny kolor.</div>
+      </div>
       <label style="display:flex;gap:8px;align-items:center;margin-bottom:14px"><input type="checkbox" name="aktywna"${fe.aktywna !== false ? ' checked' : ''}> aktywna (konta tej firmy mogą się logować i rezerwować)</label>
       <div class="akcje"><button class="btn akc" type="submit">Zapisz firmę</button><button class="btn jasny" type="button" id="bAnulujFirme">Anuluj</button></div>
     </form>` : ''}
     ${S.firmy.length ? `<div class="przewin"><table class="tab"><thead><tr><th>Nazwa</th><th>NIP</th><th>Telefon</th><th>E-mail</th><th class="num">Konta</th><th>Status</th><th></th></tr></thead><tbody>
-      ${S.firmy.map(f => `<tr${f.aktywna ? '' : ' class="odw"'}><td><b>${esc(f.nazwa)}</b>${f.uwagi ? `<div class="drobne">${esc(f.uwagi)}</div>` : ''}</td><td class="nw">${esc(f.nip || '')}</td><td class="nw">${esc(f.telefon || '')}</td><td>${esc(f.email || '')}</td><td class="num">${ileKont(f.id)}</td><td class="st">${f.aktywna ? 'aktywna' : 'zablokowana'}</td><td class="nw"><button class="lnk" data-edf="${f.id}">Edytuj</button></td></tr>`).join('')}
+      ${S.firmy.map(f => `<tr${f.aktywna ? '' : ' class="odw"'}><td><span class="kolor-firmy" style="background:${kolorFirmy(f.id)}"></span><b>${esc(f.nazwa)}</b>${f.uwagi ? `<div class="drobne">${esc(f.uwagi)}</div>` : ''}</td><td class="nw">${esc(f.nip || '')}</td><td class="nw">${esc(f.telefon || '')}</td><td>${esc(f.email || '')}</td><td class="num">${ileKont(f.id)}</td><td class="st">${f.aktywna ? 'aktywna' : 'zablokowana'}</td><td class="nw"><button class="lnk" data-edf="${f.id}">Edytuj</button></td></tr>`).join('')}
     </tbody></table></div>` : '<p class="pusto">Nie ma jeszcze firm. Dodaj pierwszą firmę przewoźnika.</p>'}
   </section>
   <section class="sekcja">
@@ -1407,13 +1441,18 @@ function renderFirmy() {
     <p class="drobne" style="margin-top:12px">Zablokowane konto nie zaloguje się i nie zobaczy danych. Zablokowanie firmy blokuje wszystkie jej konta.</p>
   </section>`;
   const on = (id, fn) => { const el = $('#' + id); if (el) el.onclick = fn; };
-  on('bNowaFirma', () => { S.fe = { aktywna: true }; renderFirmy(); $('#fFirma').nazwa.focus(); });
+  on('bNowaFirma', () => { S.fe = { aktywna: true, kolor: wolnyKolor(S.firmy) }; renderFirmy(); $('#fFirma').nazwa.focus(); });
   on('bAnulujFirme', () => { S.fe = null; renderFirmy(); });
-  $$('[data-edf]', w).forEach(b => b.onclick = () => { S.fe = { ...S.firmy.find(f => String(f.id) === b.dataset.edf) }; renderFirmy(); window.scrollTo({ top: 0 }); });
+  $$('[data-edf]', w).forEach(b => b.onclick = () => { const x = S.firmy.find(f => String(f.id) === b.dataset.edf); S.fe = { ...x, kolor: x.kolor || kolorFirmy(x.id) }; renderFirmy(); window.scrollTo({ top: 0 }); });
   const ff = $('#fFirma');
+  if (ff) {
+    ff.addEventListener('input', ev => { const t = ev.target; if (t.name) S.fe[t.name] = t.type === 'checkbox' ? t.checked : t.value; });
+    $$('#probki .probka').forEach(b => b.onclick = () => { S.fe.kolor = b.dataset.k; renderFirmy(); });
+    const ki = $('#kolorInny'); if (ki) ki.addEventListener('input', () => { S.fe.kolor = ki.value.toUpperCase(); $$('#probki .probka').forEach(x => x.classList.remove('akt')); });
+  }
   if (ff) ff.addEventListener('submit', async ev => {
     ev.preventDefault();
-    const dane = { ...(S.fe.id ? { id: S.fe.id } : {}), nazwa: ff.nazwa.value.trim(), nip: ff.nip.value.trim() || null, telefon: ff.telefon.value.trim() || null, email: ff.email.value.trim() || null, uwagi: ff.uwagi.value.trim() || null, aktywna: ff.aktywna.checked };
+    const dane = { ...(S.fe.id ? { id: S.fe.id } : {}), nazwa: ff.nazwa.value.trim(), nip: ff.nip.value.trim() || null, telefon: ff.telefon.value.trim() || null, email: ff.email.value.trim() || null, uwagi: ff.uwagi.value.trim() || null, aktywna: ff.aktywna.checked, kolor: String(S.fe.kolor || wolnyKolor(S.firmy, S.fe.id)).toUpperCase() };
     if (!dane.nazwa) { $('#fBlad').innerHTML = '<div class="komunikat">Podaj nazwę firmy.</div>'; return; }
     try { await S.db.zapiszFirme(dane); S.fe = null; S.firmy = await S.db.firmy(); toast('Firma zapisana.'); renderFirmy(); }
     catch (e) { $('#fBlad').innerHTML = `<div class="komunikat">${esc(e.message)}</div>`; }
