@@ -126,8 +126,10 @@ main{padding:22px 28px 70px}
 .kaf.minione,.kaf.zapozno{background:#f3f2ee;border-color:transparent;cursor:not-allowed}
 .kaf.poza,.kaf.swieto{background:#f3f2ee repeating-linear-gradient(135deg,transparent 0 6px,rgba(0,0,0,.04) 6px 7px);border-color:transparent;cursor:not-allowed}
 .kaf.pod{visibility:hidden}
-.kol.swieto .cialo{background:repeating-linear-gradient(135deg,transparent 0 8px,rgba(255,90,31,.07) 8px 9px)}
-.kol.swieto .kaf.wolne{background:rgba(255,255,255,.7)}
+.kol.swieto .cialo{background:#efede7 repeating-linear-gradient(135deg,transparent 0 7px,rgba(0,0,0,.13) 7px 9px)}
+.kol.swieto .kaf.swieto{background:transparent;border-color:transparent}
+.kol.swieto .nag{background:#efede7 repeating-linear-gradient(135deg,transparent 0 7px,rgba(0,0,0,.08) 7px 9px)}
+.napis-wolne{position:absolute;left:50%;top:90px;translate:-50% 0;z-index:1;background:#fff;border:1px solid var(--line2);padding:6px 12px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);white-space:nowrap;pointer-events:none}
 .rez{position:absolute;left:3px;right:3px;margin-top:1px;z-index:2;border-radius:2px;padding:4px 8px;font-size:12px;line-height:1.3;overflow:hidden;color:#fff;background:var(--ink);cursor:pointer;outline:none}
 .rez .r1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rez .r2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.82;font-size:11px;font-variant-numeric:tabular-nums}
@@ -241,7 +243,7 @@ const KONFIG = {
   prefiks: 'awizacja+',
   supabaseJs: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0'
 };
-const WERSJA = 'v1.3';
+const WERSJA = 'v1.4';
 
 /* ---------- drobiazgi ---------- */
 const $ = (s, el = document) => el.querySelector(s);
@@ -323,6 +325,7 @@ function walidujCzas(a, rola, ust, rampy, teraz = new Date()) {
   if (!(k > p)) return 'Koniec musi być po początku.';
   const r = rampy.find(r => r.id === a.rampa_id);
   if (!r || !r.aktywna) return 'Ta rampa jest nieaktywna.';
+  if (ust.dni_wolne.includes(isoDzien(p))) return 'Ten dzień jest wolny – nie można wpisać awizacji.';
   if (rola !== 'przewoznik') return null;
   if (p < new Date(teraz.getTime() + ust.min_wyprzedzenie * 60000)) return `Rezerwacja jest możliwa najpóźniej ${ust.min_wyprzedzenie} min przed oknem.`;
   const dz = dzienStart(p);
@@ -896,11 +899,12 @@ const OPIS_BLOKADY = {
   minione: () => 'To okno już minęło',
   zapozno: () => `Za późno – rezerwacja najpóźniej ${S.ust.min_wyprzedzenie} min przed oknem`,
   poza: () => `Za daleko – rezerwacja najwyżej ${S.ust.dni_naprzod} dni naprzód`,
-  swieto: () => 'Dzień wolny – rampa nie przyjmuje aut'
+  swieto: () => 'Dzień wolny – nie można wpisać awizacji'
 };
 function blokadaSlotu(t, teraz) {
   const u = S.ust, dz = dzienStart(t);
   if (t < teraz) return 'minione';
+  if (u.dni_wolne.includes(isoDzien(dz))) return 'swieto';
   if (S.ja.rola !== 'przewoznik') return null;
   if (!u.dni_robocze.includes(isoDow(dz)) || u.dni_wolne.includes(isoDzien(dz))) return 'swieto';
   if (t < new Date(teraz.getTime() + u.min_wyprzedzenie * 60000)) return 'zapozno';
@@ -1038,7 +1042,7 @@ function kolumnaDnia(d, bl, teraz, n, H) {
   const ile = dz.length, dzis = iso === isoDzien(teraz);
   return `<div class="kol${swieto ? ' swieto' : ''}" data-d="${iso}">
     <div class="nag${dzis ? ' dzis' : ''}"><span>${DNI_PELNE[isoDow(d) - 1]}${swieto ? ' · wolne' : ''}${dzis ? ' · dziś' : ''}</span><b>${d.getDate()}.${pad(d.getMonth() + 1)}</b><small>${ile ? ile + ' ' + odmianaAut(ile) : 'brak aut'}</small></div>
-    <div class="cialo">${kaf}${rez}${linia}</div>
+    <div class="cialo">${kaf}${swieto ? '<div class="napis-wolne">Dzień wolny</div>' : ''}${rez}${linia}</div>
   </div>`;
 }
 const idxSlotu = m => Math.round((m - S.ust.od_min) / S.ust.okno_min);
@@ -1156,7 +1160,7 @@ function renderSzAw(fokus) {
   const zablokuj = !!ro;
   const mx = maxDlugosc(e, si);
   const okCzas = mx >= e.dl;
-  const dzienRoboczy = u.dni_robocze.includes(isoDow(dz)) && (log || !u.dni_wolne.includes(e.dzien));
+  const dzienRoboczy = u.dni_robocze.includes(isoDow(dz)) && !u.dni_wolne.includes(e.dzien);
   const opcje = [];
   for (let i = 0; i < n; i++) {
     const m = u.od_min + i * u.okno_min, ok = maxDlugosc(e, i) > 0;
@@ -1170,7 +1174,7 @@ function renderSzAw(fokus) {
   const maxD = log ? '' : isoDzien(dodajDni(dzis, u.dni_naprzod));
   const f = e.pola, dis = zablokuj ? ' disabled' : '';
   let ostrzezenie = '';
-  if (!zablokuj && !okCzas) ostrzezenie = !dzienRoboczy ? 'Ten dzień jest wolny – rampa nie przyjmuje aut. Wybierz inny dzień.' : (mx === 0 ? 'Wybrana godzina jest zajęta albo niedostępna. Wybierz inną.' : `Od tej godziny wolne jest tylko ${fmtDl(mx * u.okno_min)}.`);
+  if (!zablokuj && !okCzas) ostrzezenie = !dzienRoboczy ? 'Ten dzień jest wolny – nie można wpisać awizacji. Wybierz inny dzień.' : (mx === 0 ? 'Wybrana godzina jest zajęta albo niedostępna. Wybierz inną.' : `Od tej godziny wolne jest tylko ${fmtDl(mx * u.okno_min)}.`);
   const tytul = e.tryb === 'nowa' ? 'Nowa awizacja' : (odw ? 'Awizacja odwołana' : 'Awizacja');
   const meta = a ? `<div class="meta">
       <div>Utworzono: ${fmtKiedy(a.utworzono)}${log && loginKonta(a.utworzyl) ? ' · ' + esc(loginKonta(a.utworzyl)) : ''}</div>
@@ -1556,14 +1560,14 @@ function renderUstawienia() {
       <label class="pole"><span>Zmiana / odwołanie najpóźniej (min przed oknem)</span><input type="number" name="odwolanie_min" min="0" max="10080" value="${u.odwolanie_min}"></label>
     </div>
     <div class="pole"><span class="et">Dni pracy rampy</span><div class="dni-check">${[1, 2, 3, 4, 5, 6, 7].map(d => `<label><input type="checkbox" name="dzien" value="${d}"${u.dni_robocze.includes(d) ? ' checked' : ''}> ${DNI_PELNE[d - 1]}</label>`).join('')}</div></div>
-    <p class="drobne">Limity dotyczą przewoźników. Logistyka może wpisać awizację na dowolny dzień, także wolny.</p>
+    <p class="drobne">Limity dotyczą przewoźników. W dni wolne nikt nie wpisze awizacji – także biuro.</p>
   </section>
   <section class="sekcja">
     <div class="sek-nag"><h2>Dni wolne</h2>
-      <div class="akcje"><input type="date" id="nowyWolny" style="width:auto"><button type="button" class="btn jasny maly" id="bDodajWolny">Dodaj dzień</button><button type="button" class="btn jasny maly" id="bSwieta">+ Święta ustawowe ${rok}–${rok + 1}</button></div>
+      <div class="akcje"><input type="date" id="nowyWolny" style="width:auto" min="${dzis}"><button type="button" class="btn jasny maly" id="bDodajWolny">Dodaj dzień</button><button type="button" class="btn jasny maly" id="bSwieta">+ Święta ustawowe ${rok}–${rok + 1}</button></div>
     </div>
     ${wolne.length ? `<div class="chipy">${wolne.map(d => `<span class="chip">${fmtKrotko(zIso(d))}.${d.slice(0, 4)}<button type="button" data-usun="${d}" aria-label="Usuń ${d}">×</button></span>`).join('')}</div>` : '<p class="drobne">Brak dni wolnych w przyszłości.</p>'}
-    ${ukryte ? `<p class="drobne">Minione dni wolne: ${ukryte} (ukryte).</p>` : ''}
+    <p class="drobne">Dzień wolny zapisuje się od razu po kliknięciu „Dodaj dzień” (albo × przy usuwaniu).${ukryte ? ` Minione dni wolne: ${ukryte} (ukryte).` : ''}</p>
   </section>
   <div class="akcje sekcja"><button type="submit" class="btn akc" id="bZapiszUst"${zmiany ? '' : ' disabled'}>Zapisz ustawienia</button>${zmiany ? '<button type="button" class="btn jasny" id="bCofnijUst">Cofnij zmiany</button><span class="drobne">Są niezapisane zmiany.</span>' : '<span class="drobne">Wszystko zapisane.</span>'}</div>
   </form>
@@ -1589,10 +1593,19 @@ function renderUstawienia() {
       dni_robocze: $$('input[name=dzien]', f).filter(c => c.checked).map(c => +c.value)
     });
   };
-  f.addEventListener('change', () => { czytajFormularz(); renderUstawienia(); });
-  $('#bDodajWolny').onclick = () => { const v = $('#nowyWolny').value; if (!v) return; czytajFormularz(); if (!u.dni_wolne.includes(v)) u.dni_wolne.push(v); u.dni_wolne.sort(); renderUstawienia(); };
-  $('#bSwieta').onclick = () => { czytajFormularz(); u.dni_wolne = [...new Set([...u.dni_wolne, ...swieta(rok), ...swieta(rok + 1)])].sort(); renderUstawienia(); };
-  $$('[data-usun]', w).forEach(b => b.onclick = () => { czytajFormularz(); u.dni_wolne = u.dni_wolne.filter(d => d !== b.dataset.usun); renderUstawienia(); });
+  f.addEventListener('change', ev => { if (ev.target.id === 'nowyWolny') return; czytajFormularz(); renderUstawienia(); });
+  const zapiszWolne = async lista => {
+    lista = [...new Set(lista)].sort();
+    try {
+      await S.db.zapiszUstawienia({ dni_wolne: lista });
+      u.dni_wolne = lista; S.ust.dni_wolne = [...lista];
+      await wczytajSlowniki(); if (S.uste) S.uste.dni_wolne = [...lista];
+      toast('Dni wolne zapisane.'); renderUstawienia();
+    } catch (e) { $('#uBlad').innerHTML = `<div class="komunikat">${esc(e.message)}</div>`; window.scrollTo({ top: 0 }); }
+  };
+  $('#bDodajWolny').onclick = () => { czytajFormularz(); const v = $('#nowyWolny').value; if (!v) return toast('Najpierw wybierz datę w polu obok.', true); zapiszWolne([...S.ust.dni_wolne, v]); };
+  $('#bSwieta').onclick = () => { czytajFormularz(); zapiszWolne([...S.ust.dni_wolne, ...swieta(rok), ...swieta(rok + 1)]); };
+  $$('[data-usun]', w).forEach(b => b.onclick = () => { czytajFormularz(); zapiszWolne(S.ust.dni_wolne.filter(d => d !== b.dataset.usun)); });
   const c = $('#bCofnijUst'); if (c) c.onclick = () => { S.uste = null; renderUstawienia(); };
   f.addEventListener('submit', async ev => {
     ev.preventDefault(); czytajFormularz();
